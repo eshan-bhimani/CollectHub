@@ -16,6 +16,7 @@ export interface AuctionListing {
   imageColor: string;
   condition: string;
   cardNumber: string;
+  marketAvgPrice: number;
 }
 
 export interface AuctionHouseInventory {
@@ -65,6 +66,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#005A9C",
     condition: "PSA 10",
     cardNumber: "#150",
+    marketAvgPrice: 3050,
   },
   {
     id: "fan-002",
@@ -84,6 +86,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#BA0021",
     condition: "PSA 10",
     cardNumber: "#US175",
+    marketAvgPrice: 53000,
   },
   {
     id: "gol-001",
@@ -103,6 +106,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#003087",
     condition: "PSA 10",
     cardNumber: "#169",
+    marketAvgPrice: 2300,
   },
   {
     id: "gol-002",
@@ -122,6 +126,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#CE1141",
     condition: "PSA 10",
     cardNumber: "#193",
+    marketAvgPrice: 1250,
   },
   {
     id: "pwcc-001",
@@ -141,6 +146,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#2F241D",
     condition: "PSA 10",
     cardNumber: "#203",
+    marketAvgPrice: 680,
   },
   {
     id: "pwcc-002",
@@ -160,6 +166,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#005C5C",
     condition: "PSA 10",
     cardNumber: "#659",
+    marketAvgPrice: 450,
   },
   {
     id: "fan-003",
@@ -179,6 +186,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#005A9C",
     condition: "PSA 10",
     cardNumber: "#BCP109",
+    marketAvgPrice: 1500,
   },
   {
     id: "gol-003",
@@ -198,6 +206,7 @@ const MOCK_LISTINGS: AuctionListing[] = [
     imageColor: "#002D72",
     condition: "PSA 10",
     cardNumber: "#US300",
+    marketAvgPrice: 3300,
   },
 ];
 

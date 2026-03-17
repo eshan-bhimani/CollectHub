@@ -36,6 +36,9 @@ export default function Home() {
             <Link href="/auctions" className="nav-link text-sm font-medium">
               Auctions
             </Link>
+            <Link href="/settings/pricing" className="nav-link text-sm font-medium">
+              Pricing
+            </Link>
           </div>
         </div>
       </motion.nav>
