@@ -16,6 +16,8 @@ import {
   getBadgeLevel,
   BUYER_PREMIUMS,
 } from "@/lib/pricingStrategy";
+import type { WantListItem } from "@/lib/collectionTypes";
+import { loadWantList, matchWantListItems } from "@/lib/collectionStore";
 
 function formatTimeLeft(endsAt: string): { text: string; urgent: boolean } {
   const diff = new Date(endsAt).getTime() - Date.now();
@@ -122,14 +124,49 @@ function BidBadge({
   );
 }
 
+function WantMatchBadge({ item }: { item: WantListItem }) {
+  const config = {
+    high: {
+      bg: "bg-red-500/15",
+      border: "border-red-500/30",
+      text: "text-red-400",
+    },
+    medium: {
+      bg: "bg-amber-500/15",
+      border: "border-amber-500/30",
+      text: "text-amber-400",
+    },
+    low: {
+      bg: "bg-white/8",
+      border: "border-white/15",
+      text: "text-white/50",
+    },
+  }[item.priority];
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold border ${config.bg} ${config.border} ${config.text}`}
+    >
+      <span>🎯</span>
+      <span>{item.playerName}</span>
+      <span className="opacity-70">—</span>
+      <span>{item.priority} priority</span>
+      <span className="opacity-70">—</span>
+      <span>max ${item.maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+    </div>
+  );
+}
+
 function AuctionCard({
   listing,
   strategy,
   onBidPlaced,
+  wantMatches,
 }: {
   listing: AuctionListing;
   strategy: PricingStrategy;
   onBidPlaced: (id: string, response: BidResponse) => void;
+  wantMatches: WantListItem[];
 }) {
   const [bidAmount, setBidAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
@@ -178,7 +215,7 @@ function AuctionCard({
           <CardInitials name={listing.player} color={listing.imageColor} />
           <div className="mt-2 text-center">
             <span className="grade-badge text-[9px]">
-              PSA {listing.grade}
+              {listing.gradingCompany === "raw" ? "Raw" : `${listing.gradingCompany} ${listing.grade}`}
             </span>
           </div>
         </div>
@@ -207,6 +244,15 @@ function AuctionCard({
           <div className="mt-2">
             <BidBadge listing={listing} strategy={strategy} />
           </div>
+
+          {/* Want list match badges */}
+          {wantMatches.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {wantMatches.map((match) => (
+                <WantMatchBadge key={match.id} item={match} />
+              ))}
+            </div>
+          )}
 
           {/* Price info */}
           <div className="mt-2 flex items-center gap-3">
@@ -399,6 +445,7 @@ export default function AuctionsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [wantList, setWantList] = useState<WantListItem[]>([]);
   const [strategy, setStrategy] = useState<PricingStrategy>({
     enabled: true,
     bidThresholdPercent: 0,
@@ -407,17 +454,22 @@ export default function AuctionsPage() {
 
   useEffect(() => {
     setStrategy(loadStrategy());
+    setWantList(loadWantList());
     loadListings();
   }, []);
 
-  // Re-load strategy when page becomes visible (user returns from settings)
+  // Re-load strategy and want list when page becomes visible
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         setStrategy(loadStrategy());
+        setWantList(loadWantList());
       }
     };
-    const handleFocus = () => setStrategy(loadStrategy());
+    const handleFocus = () => {
+      setStrategy(loadStrategy());
+      setWantList(loadWantList());
+    };
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("focus", handleFocus);
     return () => {
@@ -612,6 +664,7 @@ export default function AuctionsPage() {
                     listing={listing}
                     strategy={strategy}
                     onBidPlaced={handleBidPlaced}
+                    wantMatches={matchWantListItems(listing, wantList)}
                   />
                 </motion.div>
               ))}
