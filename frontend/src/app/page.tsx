@@ -36,6 +36,12 @@ export default function Home() {
             <Link href="/auctions" className="nav-link text-sm font-medium">
               Auctions
             </Link>
+            <Link href="/collection" className="nav-link text-sm font-medium">
+              Collection
+            </Link>
+            <Link href="/wants" className="nav-link text-sm font-medium">
+              Wants
+            </Link>
             <Link href="/settings/pricing" className="nav-link text-sm font-medium">
               Pricing
             </Link>
