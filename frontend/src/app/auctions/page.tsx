@@ -9,6 +9,13 @@ import {
   type AuctionListing,
   type BidResponse,
 } from "@/lib/mockAuctionApi";
+import {
+  type PricingStrategy,
+  loadStrategy,
+  evaluateBid,
+  getBadgeLevel,
+  BUYER_PREMIUMS,
+} from "@/lib/pricingStrategy";
 
 function formatTimeLeft(endsAt: string): { text: string; urgent: boolean } {
   const diff = new Date(endsAt).getTime() - Date.now();
@@ -23,6 +30,10 @@ function formatPrice(price: number): string {
   return price >= 1000
     ? `$${(price / 1000).toFixed(price >= 10000 ? 0 : 1)}k`
     : `$${price}`;
+}
+
+function formatUSD(price: number): string {
+  return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function CardInitials({ name, color }: { name: string; color: string }) {
@@ -45,11 +56,79 @@ function CardInitials({ name, color }: { name: string; color: string }) {
   );
 }
 
+function BidBadge({
+  listing,
+  strategy,
+}: {
+  listing: AuctionListing;
+  strategy: PricingStrategy;
+}) {
+  if (!strategy.enabled) return null;
+
+  const evaluation = evaluateBid(
+    listing.currentBid,
+    listing.marketAvgPrice,
+    listing.auctionHouse,
+    strategy
+  );
+  const level = getBadgeLevel(
+    evaluation.percentageFromAvg,
+    strategy.bidThresholdPercent
+  );
+
+  const config = {
+    good: {
+      bg: "bg-emerald-500/15",
+      border: "border-emerald-500/30",
+      text: "text-emerald-400",
+      label: "Good deal",
+    },
+    "near-limit": {
+      bg: "bg-amber-500/15",
+      border: "border-amber-500/30",
+      text: "text-amber-400",
+      label: "Near limit",
+    },
+    "over-budget": {
+      bg: "bg-red-500/15",
+      border: "border-red-500/30",
+      text: "text-red-400",
+      label: "Over budget",
+    },
+  }[level];
+
+  const pctLabel =
+    evaluation.percentageFromAvg <= 0
+      ? `${Math.abs(evaluation.percentageFromAvg)}% below`
+      : `${evaluation.percentageFromAvg}% above`;
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold border ${config.bg} ${config.border} ${config.text}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${
+          level === "good"
+            ? "bg-emerald-400"
+            : level === "near-limit"
+              ? "bg-amber-400"
+              : "bg-red-400"
+        }`}
+      />
+      <span>{config.label}</span>
+      <span className="opacity-70">·</span>
+      <span className="opacity-70">{pctLabel} market</span>
+    </div>
+  );
+}
+
 function AuctionCard({
   listing,
+  strategy,
   onBidPlaced,
 }: {
   listing: AuctionListing;
+  strategy: PricingStrategy;
   onBidPlaced: (id: string, response: BidResponse) => void;
 }) {
   const [bidAmount, setBidAmount] = useState("");
@@ -76,6 +155,15 @@ function AuctionCard({
   }, [bidAmount, listing.id, onBidPlaced]);
 
   const minBid = listing.currentBid + Math.ceil(listing.currentBid * 0.05);
+
+  const evaluation = strategy.enabled
+    ? evaluateBid(
+        listing.currentBid,
+        listing.marketAvgPrice,
+        listing.auctionHouse,
+        strategy
+      )
+    : null;
 
   return (
     <motion.div
@@ -115,8 +203,13 @@ function AuctionCard({
             </span>
           </div>
 
+          {/* Bid evaluation badge */}
+          <div className="mt-2">
+            <BidBadge listing={listing} strategy={strategy} />
+          </div>
+
           {/* Price info */}
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-2 flex items-center gap-3">
             <div className="price-tag px-2.5 py-1 rounded-lg">
               <p className="text-[10px] text-emerald-400/70">Current Bid</p>
               <p className="text-sm font-bold text-emerald-400">
@@ -124,11 +217,19 @@ function AuctionCard({
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-white/30">Est. Value</p>
+              <p className="text-[10px] text-white/30">Mkt Avg</p>
               <p className="text-xs font-medium text-white/50">
-                {formatPrice(listing.estimatedValue)}
+                {formatPrice(listing.marketAvgPrice)}
               </p>
             </div>
+            {evaluation && (
+              <div>
+                <p className="text-[10px] text-white/30">True Cost</p>
+                <p className="text-xs font-medium text-white/50">
+                  {formatPrice(evaluation.trueCost)}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-[10px] text-white/30">Bids</p>
               <p className="text-xs font-medium text-white/50">
@@ -145,6 +246,11 @@ function AuctionCard({
             <span className="text-[10px] text-white/25">
               {listing.team}
             </span>
+            {evaluation && (
+              <span className="text-[10px] text-white/20">
+                Max bid: {formatUSD(evaluation.maxBid)}
+              </span>
+            )}
           </div>
 
           {/* Bid input */}
@@ -199,14 +305,125 @@ function AuctionCard({
   );
 }
 
+function StrategySummary({ strategy }: { strategy: PricingStrategy }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!strategy.enabled) return null;
+
+  const thresholdLabel =
+    strategy.bidThresholdPercent === 0
+      ? "at market average"
+      : strategy.bidThresholdPercent > 0
+        ? `${strategy.bidThresholdPercent}% above market`
+        : `${Math.abs(strategy.bidThresholdPercent)}% below market`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.15 }}
+      className="glass-card rounded-xl overflow-hidden"
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+          <span className="text-xs text-white/70 truncate">
+            <span className="font-semibold text-white/90">Strategy:</span> Bid{" "}
+            {thresholdLabel} &middot; Source: {strategy.priceSource}
+          </span>
+        </div>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`text-white/30 flex-shrink-0 transition-transform duration-200 ${
+            expanded ? "rotate-180" : ""
+          }`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-3 space-y-2 border-t border-white/[0.06] pt-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-white/40">Threshold</span>
+                <span className="text-white/70 font-medium">
+                  {thresholdLabel}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-white/40">Price Source</span>
+                <span className="text-white/70 font-medium">
+                  {strategy.priceSource}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-white/40">Premiums included</span>
+                <span className="text-white/70 font-medium">
+                  {Object.keys(BUYER_PREMIUMS).length} platforms
+                </span>
+              </div>
+              <Link
+                href="/settings/pricing"
+                className="mt-2 block text-center text-[11px] text-[#5b9bff] hover:text-[#7db4ff] transition-colors py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+              >
+                Edit Strategy
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 export default function AuctionsPage() {
   const [listings, setListings] = useState<AuctionListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [strategy, setStrategy] = useState<PricingStrategy>({
+    enabled: true,
+    bidThresholdPercent: 0,
+    priceSource: "VCP",
+  });
 
   useEffect(() => {
+    setStrategy(loadStrategy());
     loadListings();
+  }, []);
+
+  // Re-load strategy when page becomes visible (user returns from settings)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setStrategy(loadStrategy());
+      }
+    };
+    const handleFocus = () => setStrategy(loadStrategy());
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const loadListings = async () => {
@@ -256,25 +473,46 @@ export default function AuctionsPage() {
         className="relative z-10 px-4 pt-6 pb-2"
       >
         <div className="max-w-3xl mx-auto">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm mb-3 group"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="group-hover:-translate-x-0.5 transition-transform duration-200"
+          <div className="flex items-center justify-between mb-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm group"
             >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-            Back
-          </Link>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="group-hover:-translate-x-0.5 transition-transform duration-200"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              Back
+            </Link>
+            <Link
+              href="/settings/pricing"
+              className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-xs group"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              Strategy
+            </Link>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
             <span className="text-white">Live</span>{" "}
             <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
@@ -286,6 +524,13 @@ export default function AuctionsPage() {
           </p>
         </div>
       </motion.header>
+
+      {/* Strategy Summary Widget */}
+      <div className="relative z-10 px-4 py-2">
+        <div className="max-w-3xl mx-auto">
+          <StrategySummary strategy={strategy} />
+        </div>
+      </div>
 
       {/* Filters */}
       <motion.div
@@ -365,6 +610,7 @@ export default function AuctionsPage() {
                 >
                   <AuctionCard
                     listing={listing}
+                    strategy={strategy}
                     onBidPlaced={handleBidPlaced}
                   />
                 </motion.div>
