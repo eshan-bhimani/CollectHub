@@ -16,6 +16,8 @@ import {
   getBadgeLevel,
   BUYER_PREMIUMS,
 } from "@/lib/pricingStrategy";
+import type { WantListItem } from "@/lib/collectionTypes";
+import { loadWantList, matchWantListItems } from "@/lib/collectionStore";
 
 function formatTimeLeft(endsAt: string): { text: string; urgent: boolean } {
   const diff = new Date(endsAt).getTime() - Date.now();
@@ -122,13 +124,48 @@ function BidBadge({
   );
 }
 
+function WantMatchBadges({
+  listing,
+  wantList,
+}: {
+  listing: AuctionListing;
+  wantList: WantListItem[];
+}) {
+  const matches = matchWantListItems(listing, wantList);
+  if (matches.length === 0) return null;
+
+  const badgeConfig: Record<WantListItem["priority"], { bg: string; border: string; text: string }> = {
+    high: { bg: "bg-red-500/15", border: "border-red-500/30", text: "text-red-400" },
+    medium: { bg: "bg-amber-500/15", border: "border-amber-500/30", text: "text-amber-400" },
+    low: { bg: "bg-white/8", border: "border-white/15", text: "text-white/50" },
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {matches.map((match) => {
+        const cfg = badgeConfig[match.priority];
+        return (
+          <span
+            key={match.id}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${cfg.bg} ${cfg.border} ${cfg.text}`}
+          >
+            🎯 {match.playerName} — {match.priority} priority — max ${match.maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function AuctionCard({
   listing,
   strategy,
+  wantList,
   onBidPlaced,
 }: {
   listing: AuctionListing;
   strategy: PricingStrategy;
+  wantList: WantListItem[];
   onBidPlaced: (id: string, response: BidResponse) => void;
 }) {
   const [bidAmount, setBidAmount] = useState("");
@@ -178,7 +215,9 @@ function AuctionCard({
           <CardInitials name={listing.player} color={listing.imageColor} />
           <div className="mt-2 text-center">
             <span className="grade-badge text-[9px]">
-              PSA {listing.grade}
+              {listing.gradingCompany === "raw"
+                ? "Raw"
+                : `${listing.gradingCompany} ${listing.grade}`}
             </span>
           </div>
         </div>
@@ -204,8 +243,9 @@ function AuctionCard({
           </div>
 
           {/* Bid evaluation badge */}
-          <div className="mt-2">
+          <div className="mt-2 space-y-1">
             <BidBadge listing={listing} strategy={strategy} />
+            <WantMatchBadges listing={listing} wantList={wantList} />
           </div>
 
           {/* Price info */}
@@ -404,9 +444,11 @@ export default function AuctionsPage() {
     bidThresholdPercent: 0,
     priceSource: "VCP",
   });
+  const [wantList, setWantList] = useState<WantListItem[]>([]);
 
   useEffect(() => {
     setStrategy(loadStrategy());
+    setWantList(loadWantList());
     loadListings();
   }, []);
 
@@ -415,9 +457,13 @@ export default function AuctionsPage() {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         setStrategy(loadStrategy());
+        setWantList(loadWantList());
       }
     };
-    const handleFocus = () => setStrategy(loadStrategy());
+    const handleFocus = () => {
+      setStrategy(loadStrategy());
+      setWantList(loadWantList());
+    };
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("focus", handleFocus);
     return () => {
@@ -611,6 +657,7 @@ export default function AuctionsPage() {
                   <AuctionCard
                     listing={listing}
                     strategy={strategy}
+                    wantList={wantList}
                     onBidPlaced={handleBidPlaced}
                   />
                 </motion.div>
