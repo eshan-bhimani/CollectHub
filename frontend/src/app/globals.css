@@ -30,8 +30,13 @@ body {
   animation: gradientShift 15s ease infinite;
 }
 
+/* Multi-tone layered gradient for visual depth */
 .bg-landing {
-  background: linear-gradient(160deg, #000e28 0%, #002D72 40%, #001a45 70%, #001437 100%);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(0, 45, 114, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 70% 70%, rgba(0, 30, 80, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 60%, rgba(0, 20, 55, 0.15) 0%, transparent 60%),
+    linear-gradient(160deg, #000a1e 0%, #001437 25%, #002055 45%, #001a45 65%, #000e28 85%, #00091c 100%);
   position: relative;
   overflow: hidden;
 }
@@ -45,77 +50,123 @@ body {
 /* ───────────────────────────────────────────
    Animated glow blobs behind hero
    ─────────────────────────────────────────── */
+/* Floating glow blobs — ambient light sources behind content */
 .glow-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.35;
+  filter: blur(100px);
+  opacity: 0.3;
   pointer-events: none;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
+/* Primary blue glow — centered behind hero area */
 .glow-blob-blue {
-  background: radial-gradient(circle, #003DA5 0%, #002D72 60%, transparent 100%);
-  width: 500px;
-  height: 500px;
-  top: -120px;
+  background: radial-gradient(circle, rgba(0, 61, 165, 0.7) 0%, rgba(0, 45, 114, 0.4) 40%, transparent 70%);
+  width: 600px;
+  height: 600px;
+  top: -150px;
   left: 50%;
   transform: translateX(-50%);
-  animation: blobFloat1 8s ease-in-out infinite;
+  animation: blobFloat1 12s ease-in-out infinite;
 }
 
+/* Warm accent glow — very subdued, adds color depth without competing */
 .glow-blob-red {
-  background: radial-gradient(circle, #C8102E 0%, #8b0a1e 60%, transparent 100%);
+  background: radial-gradient(circle, rgba(200, 16, 46, 0.5) 0%, rgba(139, 10, 30, 0.2) 50%, transparent 70%);
   width: 350px;
   height: 350px;
   top: 60px;
   right: -80px;
-  opacity: 0.2;
-  animation: blobFloat2 10s ease-in-out infinite;
+  opacity: 0.12;
+  animation: blobFloat2 16s ease-in-out infinite;
 }
 
+/* Secondary blue glow — bottom-left depth layer */
 .glow-blob-blue-bottom {
-  background: radial-gradient(circle, #003DA5 0%, #002D72 60%, transparent 100%);
-  width: 400px;
-  height: 400px;
-  bottom: -100px;
+  background: radial-gradient(circle, rgba(0, 61, 165, 0.5) 0%, rgba(0, 45, 114, 0.2) 50%, transparent 70%);
+  width: 450px;
+  height: 450px;
+  bottom: -120px;
   left: -100px;
-  opacity: 0.2;
-  animation: blobFloat3 12s ease-in-out infinite;
+  opacity: 0.18;
+  animation: blobFloat3 14s ease-in-out infinite;
 }
 
+/* Soft ambient orb — adds extra depth, very subtle */
+.glow-blob-ambient {
+  background: radial-gradient(circle, rgba(0, 50, 130, 0.4) 0%, rgba(0, 30, 80, 0.15) 50%, transparent 70%);
+  width: 500px;
+  height: 500px;
+  top: 40%;
+  left: 60%;
+  opacity: 0.1;
+  animation: blobFloat4 20s ease-in-out infinite;
+}
+
+/* Hero spotlight — focused soft glow directly behind hero card */
+.hero-spotlight {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse at center, rgba(0, 61, 165, 0.12) 0%, rgba(0, 45, 114, 0.05) 40%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  animation: spotlightBreathe 8s ease-in-out infinite;
+}
+
+/* Slow organic float — longer duration for elegance */
 @keyframes blobFloat1 {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(30px); }
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.3; }
+  33% { transform: translateX(-48%) translateY(20px); opacity: 0.28; }
+  66% { transform: translateX(-52%) translateY(-10px); opacity: 0.32; }
 }
 
 @keyframes blobFloat2 {
   0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.08); }
+  50% { transform: translateY(-15px) scale(1.04); }
 }
 
 @keyframes blobFloat3 {
   0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(15px) scale(1.05); }
+  50% { transform: translateY(12px) scale(1.03); }
 }
 
-/* Subtle noise overlay (CSS-only) */
+@keyframes blobFloat4 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+  33% { transform: translate(-20px, 15px) scale(1.05); opacity: 0.08; }
+  66% { transform: translate(15px, -10px) scale(0.97); opacity: 0.12; }
+}
+
+/* Subtle pulsing of hero spotlight — almost imperceptible */
+@keyframes spotlightBreathe {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.7; transform: translateX(-50%) scale(1.05); }
+}
+
+/* Fine noise/grain texture — removes flat digital feel */
 .noise-overlay::before {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Vignette overlay */
+/* Deep vignette — draws focus to center content */
 .vignette::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 10, 30, 0.6) 100%);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, transparent 30%, rgba(0, 8, 24, 0.4) 70%, rgba(0, 5, 16, 0.75) 100%);
   pointer-events: none;
   z-index: 0;
 }
