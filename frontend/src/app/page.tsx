@@ -28,40 +28,6 @@ export default function Home() {
       <div className="hero-spotlight" />
       <div className="hero-spotlight-secondary" />
 
-      {/* Navigation */}
-      <motion.nav
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 px-4 pt-5"
-      >
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <span className="text-lg font-extrabold tracking-tight">
-            <span className="text-white">Collect</span>
-            <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
-              Hub
-            </span>
-          </span>
-          <div className="flex items-center gap-6">
-            <Link href="/crop" className="nav-link text-sm font-medium">
-              Crop Tool
-            </Link>
-            <Link href="/auctions" className="nav-link text-sm font-medium">
-              Auctions
-            </Link>
-            <Link href="/collection" className="nav-link text-sm font-medium">
-              Collection
-            </Link>
-            <Link href="/wants" className="nav-link text-sm font-medium">
-              Wants
-            </Link>
-            <Link href="/settings/pricing" className="nav-link text-sm font-medium">
-              Pricing
-            </Link>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Hero */}
       <HeroGlass />
 

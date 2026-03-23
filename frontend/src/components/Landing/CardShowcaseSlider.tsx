@@ -138,7 +138,7 @@ function CardPlaceholder({ card, index }: { card: CardEntry; index: number }) {
           background: `linear-gradient(160deg, ${card.color} 0%, ${card.color}dd 40%, #0a1628 100%)`,
         }}
       />
-      <div className="absolute inset-[3px] rounded-lg border border-white/10" />
+      <div className="absolute inset-[3px] rounded-lg border border-white/[0.06]" />
       <div
         className="absolute inset-0 opacity-20"
         style={{

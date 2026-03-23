@@ -5,12 +5,12 @@ import Link from "next/link";
 
 export default function HeroGlass() {
   return (
-    <section className="relative z-10 px-4 pt-16 pb-10 sm:pt-24 sm:pb-16">
+    <section className="relative z-10 px-4 pt-24 pb-16 sm:pt-36 sm:pb-24">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="glass-hero rounded-2xl max-w-xl mx-auto px-6 py-10 sm:px-10 sm:py-14 text-center"
+        className="glass-hero rounded-2xl max-w-xl mx-auto px-8 py-12 sm:px-12 sm:py-16 text-center"
       >
         {/* Brand */}
         <motion.h1
@@ -32,16 +32,16 @@ export default function HeroGlass() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-4 text-sm sm:text-base text-white/60 max-w-md mx-auto leading-relaxed"
         >
-          Auto-crop &amp; orient your baseball cards for PSA Registry &amp;
-          Fanatics Vault formats.
+          Crop, grade, track, and trade — your entire baseball card collection,
+          managed in one place.
         </motion.p>
 
-        {/* CTA Button */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-8"
+          className="mt-8 flex flex-col items-center gap-3"
         >
           <Link
             href="/crop"
@@ -62,6 +62,15 @@ export default function HeroGlass() {
               <path d="M18 22V8a2 2 0 0 0-2-2H2" />
             </svg>
             Start Cropping
+          </Link>
+          <Link
+            href="/auctions"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold glass-hero hover:bg-white/10 text-white/75 hover:text-white transition-all duration-300 active:scale-[0.97]"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            Browse Live Auctions
           </Link>
         </motion.div>
 
