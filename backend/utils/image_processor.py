@@ -62,15 +62,18 @@ class CardCropper:
             logger.info(f"Processing image of size {original_w}x{original_h}")
 
             # Detect card with improved algorithm (returns bounding box, not contour)
-            card_bbox, confidence, is_screenshot = self._detect_card_contour_advanced(image)
+            card_bbox, confidence, is_screenshot, detection_method = self._detect_card_contour_advanced(image)
 
             if card_bbox is None:
-                return {
-                    "success": False,
-                    "message": "No card detected in image. Please ensure the card is clearly visible.",
-                    "confidence": 0.0,
-                    "original_size": [original_w, original_h]
-                }
+                card_bbox, confidence, detection_method = self._fallback_center_crop_bbox(image)
+                if card_bbox is None:
+                    return {
+                        "success": False,
+                        "message": "No card detected in image. Please ensure the card is clearly visible.",
+                        "confidence": 0.0,
+                        "original_size": [original_w, original_h],
+                        "detection_method": "failed"
+                    }
 
             # Extract card using axis-aligned bounding box (no perspective distortion)
             # Apply edge padding to keep card/case edges visible with minimal background
@@ -95,7 +98,9 @@ class CardCropper:
                 "confidence": confidence,
                 "message": "Card successfully detected and cropped",
                 "original_size": [original_w, original_h],
-                "cropped_size": [cropped_w, cropped_h]
+                "cropped_size": [cropped_w, cropped_h],
+                "crop_box": card_bbox,
+                "detection_method": detection_method
             }
 
         except Exception as e:
@@ -106,7 +111,7 @@ class CardCropper:
                 "error": str(e)
             }
 
-    def _detect_card_contour_advanced(self, image: np.ndarray) -> Tuple[Optional[List[int]], float, bool]:
+    def _detect_card_contour_advanced(self, image: np.ndarray) -> Tuple[Optional[List[int]], float, bool, str]:
         """
         Detect the card or PSA slab in the image.
         For PSA cases: detects the FULL slab (label + holder + card).
@@ -117,7 +122,7 @@ class CardCropper:
             image: Input image (BGR format)
 
         Returns:
-            Tuple of (bounding_box as [x, y, w, h], confidence_score, is_screenshot)
+            Tuple of (bounding_box as [x, y, w, h], confidence_score, is_screenshot, detection_method)
         """
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -178,7 +183,7 @@ class CardCropper:
 
         if not contours:
             logger.warning("No contours found in image")
-            return None, 0.0, is_screenshot
+            return None, 0.0, is_screenshot, "failed"
 
         candidates = []
 
@@ -232,7 +237,7 @@ class CardCropper:
 
         if not candidates:
             logger.warning("No valid card candidates found")
-            return None, 0.0, is_screenshot
+            return None, 0.0, is_screenshot, "failed"
 
         # Select the best candidate by confidence
         best_candidate = max(candidates, key=lambda x: x["confidence"])
@@ -243,7 +248,41 @@ class CardCropper:
             f"area_ratio={best_candidate['area_ratio']:.3f}"
         )
 
-        return best_candidate["bbox"], best_candidate["confidence"], is_screenshot
+        return best_candidate["bbox"], best_candidate["confidence"], is_screenshot, "contour"
+
+    def _fallback_center_crop_bbox(self, image: np.ndarray) -> Tuple[Optional[List[int]], float, str]:
+        """
+        Produce a conservative centered portrait crop when contour detection misses.
+        This keeps the tool useful for clean, centered phone shots where glare or a
+        low-contrast background hides the card edges from OpenCV.
+        """
+        height, width = image.shape[:2]
+
+        if min(width, height) < 120:
+            logger.warning("Image too small for fallback crop: %sx%s", width, height)
+            return None, 0.0, "failed"
+
+        target_ratio = self.CARD_ASPECT_RATIO
+        usable_w = width * 0.88
+        usable_h = height * 0.88
+
+        crop_h = usable_h
+        crop_w = crop_h * target_ratio
+
+        if crop_w > usable_w:
+            crop_w = usable_w
+            crop_h = crop_w / target_ratio
+
+        x = int((width - crop_w) / 2)
+        y = int((height - crop_h) / 2)
+        w = int(crop_w)
+        h = int(crop_h)
+
+        if w <= 0 or h <= 0:
+            return None, 0.0, "failed"
+
+        logger.info("Using fallback centered crop: x=%s y=%s w=%s h=%s", x, y, w, h)
+        return [x, y, w, h], 0.35, "center_fallback"
 
     def _detect_screenshot_ui(self, image: np.ndarray) -> bool:
         """

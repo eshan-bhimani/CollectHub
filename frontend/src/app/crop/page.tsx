@@ -14,6 +14,42 @@ import StepIndicator, { type CropStep } from "@/components/StepIndicator";
 import { cropImage, type CropImageResponse } from "@/lib/api";
 
 type ViewMode = "upload" | "processing" | "result" | "adjust";
+type RotationDirection = "left" | "right";
+
+async function rotateImageDataUrl(
+  imageUrl: string,
+  direction: RotationDirection
+): Promise<string> {
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("Could not rotate image"));
+    image.src = imageUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalHeight;
+  canvas.height = image.naturalWidth;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not rotate image");
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  if (direction === "right") {
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+  } else {
+    ctx.translate(0, canvas.height);
+    ctx.rotate(-Math.PI / 2);
+  }
+
+  ctx.drawImage(image, 0, 0);
+  return canvas.toDataURL("image/png");
+}
 
 export default function CropPage() {
   const [state, setState] = useState<ProcessingState>("idle");
@@ -74,12 +110,39 @@ export default function CropPage() {
     setViewMode("result");
   }, []);
 
+  const handleRotate = useCallback(
+    async (direction: RotationDirection) => {
+      const imageUrl = adjustedUrl ?? result?.cropped_image;
+      if (!imageUrl) return;
+
+      try {
+        const rotatedUrl = await rotateImageDataUrl(imageUrl, direction);
+        setAdjustedUrl(rotatedUrl);
+        setResult((current) =>
+          current
+            ? {
+                ...current,
+                cropped_size: [current.cropped_size[1], current.cropped_size[0]],
+              }
+            : current
+        );
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Could not rotate image";
+        setError(message);
+      }
+    },
+    [adjustedUrl, result?.cropped_image]
+  );
+
   const handleSkipAdjust = useCallback(() => {
-    setViewMode("result");
-  }, []);
+    setViewMode(result ? "result" : "processing");
+  }, [result]);
 
   const isProcessing = state === "uploading" || state === "processing";
   const displayUrl = adjustedUrl ?? result?.cropped_image ?? null;
+  const adjustImageUrl = displayUrl ?? originalUrl;
+  const usedFallback = result?.detection_method === "center_fallback";
 
   return (
     <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
@@ -156,7 +219,7 @@ export default function CropPage() {
                 exit={{ opacity: 0, y: -10, scale: 0.97 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <div className="glass-hero rounded-2xl p-5">
+                <div className="glass-hero upload-card-shell rounded-2xl p-5">
                   <UploadArea
                     onFileSelected={handleFileSelected}
                     disabled={isProcessing}
@@ -194,6 +257,14 @@ export default function CropPage() {
                 )}
                 {state === "error" && (
                   <div className="flex gap-3">
+                    {originalUrl && (
+                      <button
+                        onClick={handleAdjustCrop}
+                        className="flex-1 py-3 rounded-xl font-semibold text-sm btn-cta active:scale-[0.97] transition-all duration-300 text-white"
+                      >
+                        Manual Crop
+                      </button>
+                    )}
                     <button
                       onClick={handleReset}
                       className="flex-1 py-3 rounded-xl font-semibold text-sm glass-hero hover:bg-white/10 active:scale-[0.97] transition-all duration-300 text-white/80"
@@ -221,6 +292,42 @@ export default function CropPage() {
                   afterUrl={displayUrl}
                   confidence={result?.confidence}
                 />
+                {result && (
+                  <div className="glass-hero rounded-2xl p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-white/80">
+                        {usedFallback ? "Centered fallback crop" : "Edge-detected crop"}
+                      </p>
+                      <p className="text-[11px] text-white/40 mt-0.5">
+                        {result.cropped_size[0]}x{result.cropped_size[1]} PNG
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleRotate("left")}
+                        className="h-10 w-10 rounded-xl glass-hero hover:bg-white/10 active:scale-[0.95] transition-all duration-300 text-white/70 flex items-center justify-center"
+                        aria-label="Rotate left"
+                        title="Rotate left"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5.64 17.66A7 7 0 1010 5.26L3 13" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleRotate("right")}
+                        className="h-10 w-10 rounded-xl glass-hero hover:bg-white/10 active:scale-[0.95] transition-all duration-300 text-white/70 flex items-center justify-center"
+                        aria-label="Rotate right"
+                        title="Rotate right"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 7v6h-6" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.36 17.66A7 7 0 1114 5.26L21 13" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <ActionBar
                   processedUrl={displayUrl}
                   onReset={handleReset}
@@ -232,7 +339,7 @@ export default function CropPage() {
             )}
 
             {/* Crop adjuster view */}
-            {viewMode === "adjust" && displayUrl && (
+            {viewMode === "adjust" && adjustImageUrl && (
               <motion.div
                 key="adjust"
                 initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -241,7 +348,7 @@ export default function CropPage() {
                 transition={{ duration: 0.45, ease: "easeOut" }}
               >
                 <CropAdjuster
-                  imageUrl={displayUrl}
+                  imageUrl={adjustImageUrl}
                   onCropComplete={handleCropComplete}
                   onSkip={handleSkipAdjust}
                 />

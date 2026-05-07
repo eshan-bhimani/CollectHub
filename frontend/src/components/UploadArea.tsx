@@ -83,9 +83,9 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
         onDragLeave={handleDragLeave}
         onClick={handleClick}
         className={`
-          upload-zone rounded-2xl p-8 text-center cursor-pointer
-          transition-all duration-300 min-h-[220px]
-          flex flex-col items-center justify-center gap-5
+          upload-zone rounded-2xl p-6 sm:p-8 text-center cursor-pointer
+          transition-all duration-300 min-h-[240px]
+          flex flex-col items-center justify-center gap-4
           ${isDragOver ? "drag-over" : ""}
           ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98]"}
         `}
@@ -99,22 +99,30 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           disabled={disabled}
         />
 
-        {/* Animated upload icon */}
+        <div className="upload-zone-sheen" />
+
+        {/* Card upload mark */}
         <motion.div
-          animate={isDragOver ? { scale: 1.15, y: -5 } : { scale: 1, y: 0 }}
+          animate={isDragOver ? { scale: 1.08, y: -4 } : { scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className={`
-            w-20 h-20 rounded-2xl flex items-center justify-center
+            relative w-20 h-24 rounded-[18px] flex items-center justify-center
             transition-all duration-300 upload-icon-container
             ${isDragOver ? "upload-icon-active" : ""}
           `}
         >
+          <div className="absolute top-3 left-3 right-3 h-2 rounded-full bg-white/12" />
+          <div className="absolute bottom-3 left-3 right-3 grid grid-cols-3 gap-1">
+            <span className="h-1 rounded-full bg-white/10" />
+            <span className="h-1 rounded-full bg-white/10" />
+            <span className="h-1 rounded-full bg-white/10" />
+          </div>
           <svg
-            className={`w-9 h-9 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
+            className={`w-8 h-8 transition-colors duration-300 ${isDragOver ? "text-white" : "text-white/70"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth={1.5}
+            strokeWidth={1.8}
           >
             <path
               strokeLinecap="round"
@@ -124,26 +132,17 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           </svg>
         </motion.div>
 
-        <div>
-          <p className="text-white/90 font-semibold text-lg">
-            {isDragOver ? "Drop your card image" : "Upload a card image"}
-          </p>
-          <p className="text-white/40 text-sm mt-1.5">
-            Tap to select or drag &amp; drop
+        <div className="relative">
+          <p className="text-white/95 font-semibold text-lg tracking-normal">
+            {isDragOver ? "Drop Card" : "Upload Card"}
           </p>
         </div>
 
-        {/* File type badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {["JPEG", "PNG", "WebP", "HEIC"].map((format) => (
-            <span
-              key={format}
-              className="text-[10px] font-medium text-white/30 px-2 py-0.5 rounded-md bg-white/5 border border-white/5"
-            >
-              {format}
-            </span>
-          ))}
-          <span className="text-[10px] text-white/20">Max {MAX_SIZE_MB}MB</span>
+        <div className="relative flex items-center justify-center gap-2 pt-1">
+          <span className="text-[10px] font-medium text-white/36 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/[0.08]">
+            JPG PNG WebP HEIC
+          </span>
+          <span className="text-[10px] text-white/28">Max {MAX_SIZE_MB}MB</span>
         </div>
       </div>
 
