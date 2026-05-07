@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 interface BeforeAfterSliderProps {
@@ -15,8 +15,22 @@ export default function BeforeAfterSlider({
   confidence,
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
+  const [containerWidth, setContainerWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateWidth = () => setContainerWidth(container.offsetWidth);
+    updateWidth();
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   const updatePosition = useCallback((clientX: number) => {
     const container = containerRef.current;
@@ -105,7 +119,7 @@ export default function BeforeAfterSlider({
             src={beforeUrl}
             alt="Original card"
             className="w-full h-auto block max-h-[60vh] object-contain"
-            style={{ width: `${containerRef.current?.offsetWidth ?? 100}px`, maxWidth: "none" }}
+            style={{ width: `${containerWidth || 100}px`, maxWidth: "none" }}
             draggable={false}
           />
         </div>

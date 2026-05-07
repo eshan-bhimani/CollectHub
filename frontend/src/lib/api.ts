@@ -9,6 +9,8 @@ export interface CropImageResponse {
   message: string;
   original_size: [number, number];
   cropped_size: [number, number];
+  crop_box?: [number, number, number, number];
+  detection_method?: "contour" | "center_fallback" | "failed";
 }
 
 export interface ApiError {

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
 
 from config import settings
 from db.database import get_db
@@ -13,15 +13,13 @@ from schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserRespo
 
 router = APIRouter()
 
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def _hash(password: str) -> str:
-    return _pwd.hash(password)
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def _verify(plain: str, hashed: str) -> bool:
-    return _pwd.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def _make_token(user_id: str) -> str:
