@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   fetchAuctionListings,
@@ -14,6 +14,17 @@ import {
 } from "@/lib/pricingStrategy";
 import type { WantListItem } from "@/lib/collectionTypes";
 import { loadWantList, matchWantListItems } from "@/lib/collectionStore";
+import {
+  type TrackedBid,
+  type BidNotification,
+  loadTrackedBids,
+  trackBid,
+  loadNotifications,
+  checkBidsForAlerts,
+  markNotificationRead,
+  markAllNotificationsRead,
+  clearNotifications,
+} from "@/lib/bidTracker";
 import PillBadge from "@/components/Shared/PillBadge";
 import MarketOverview from "@/components/Auctions/MarketOverview";
 import StrategySummary from "@/components/Auctions/StrategySummary";
@@ -21,6 +32,8 @@ import AuctionControlBar, { type SortOption } from "@/components/Auctions/Auctio
 import AuctionCard from "@/components/Auctions/AuctionCard";
 import AuctionSkeleton from "@/components/Auctions/AuctionSkeleton";
 import AuctionEmptyState from "@/components/Auctions/AuctionEmptyState";
+import ActiveBids from "@/components/Auctions/ActiveBids";
+import BidNotificationsDropdown from "@/components/Auctions/BidNotifications";
 
 function sortListings(
   listings: AuctionListing[],
@@ -63,10 +76,15 @@ export default function AuctionsPage() {
     bidThresholdPercent: 0,
     priceSource: "VCP",
   });
+  const [trackedBids, setTrackedBids] = useState<TrackedBid[]>([]);
+  const [notifications, setNotifications] = useState<BidNotification[]>([]);
+  const alertIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   useEffect(() => {
     setStrategy(loadStrategy());
     setWantList(loadWantList());
+    setTrackedBids(loadTrackedBids());
+    setNotifications(loadNotifications());
     loadListings();
   }, []);
 
@@ -75,11 +93,14 @@ export default function AuctionsPage() {
       if (document.visibilityState === "visible") {
         setStrategy(loadStrategy());
         setWantList(loadWantList());
+        setTrackedBids(loadTrackedBids());
+        setNotifications(loadNotifications());
       }
     };
     const handleFocus = () => {
       setStrategy(loadStrategy());
       setWantList(loadWantList());
+      setTrackedBids(loadTrackedBids());
     };
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("focus", handleFocus);
@@ -89,6 +110,26 @@ export default function AuctionsPage() {
     };
   }, []);
 
+  // Poll for bid alerts every 30 seconds
+  useEffect(() => {
+    if (trackedBids.length === 0 || listings.length === 0) return;
+
+    const check = () => {
+      const snapshots = listings.map((l) => ({
+        id: l.id,
+        currentBid: l.currentBid,
+        endsAt: l.endsAt,
+        player: l.player,
+      }));
+      const updated = checkBidsForAlerts(trackedBids, snapshots);
+      setNotifications(updated);
+    };
+
+    check();
+    alertIntervalRef.current = setInterval(check, 30_000);
+    return () => clearInterval(alertIntervalRef.current);
+  }, [trackedBids, listings]);
+
   const loadListings = async () => {
     setLoading(true);
     const data = await fetchAuctionListings();
@@ -97,13 +138,42 @@ export default function AuctionsPage() {
   };
 
   const handleBidPlaced = useCallback((id: string, response: BidResponse) => {
-    setListings((prev) =>
-      prev.map((l) =>
+    setListings((prev) => {
+      const updated = prev.map((l) =>
         l.id === id
           ? { ...l, currentBid: response.newBid, bidCount: response.bidCount }
           : l
-      )
-    );
+      );
+      const listing = updated.find((l) => l.id === id);
+      if (listing) {
+        const bid: TrackedBid = {
+          listingId: id,
+          bidAmount: response.newBid,
+          bidAt: new Date().toISOString(),
+          player: listing.player,
+          title: listing.title,
+          auctionHouse: listing.auctionHouse,
+          endsAt: listing.endsAt,
+          imageColor: listing.imageColor,
+          gradingCompany: listing.gradingCompany,
+          grade: listing.grade,
+        };
+        setTrackedBids(trackBid(bid));
+      }
+      return updated;
+    });
+  }, []);
+
+  const handleMarkRead = useCallback((id: string) => {
+    setNotifications(markNotificationRead(id));
+  }, []);
+
+  const handleMarkAllRead = useCallback(() => {
+    setNotifications(markAllNotificationsRead());
+  }, []);
+
+  const handleClearNotifications = useCallback(() => {
+    setNotifications(clearNotifications());
   }, []);
 
   const filteredListings = sortListings(
@@ -150,16 +220,28 @@ export default function AuctionsPage() {
         className="relative z-10 px-4 pt-6 pb-2"
       >
         <div className="max-w-6xl mx-auto">
-          <PillBadge label="Live Market" className="mb-4" />
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-            <span className="text-white">Live</span>{" "}
-            <span className="bg-gradient-to-r from-[#C8102E] via-[#e8354a] to-[#ff6b6b] bg-clip-text text-transparent">
-              Auctions
-            </span>
-          </h1>
-          <p className="text-white/35 text-sm mt-1.5 max-w-md">
-            Browse and bid on graded baseball cards across Fanatics, Goldin &amp; PWCC
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <PillBadge label="Live Market" className="mb-4" />
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                <span className="text-white">Live</span>{" "}
+                <span className="bg-gradient-to-r from-[#C8102E] via-[#e8354a] to-[#ff6b6b] bg-clip-text text-transparent">
+                  Auctions
+                </span>
+              </h1>
+              <p className="text-white/35 text-sm mt-1.5 max-w-md">
+                Browse and bid on graded baseball cards across Fanatics, Goldin &amp; PWCC
+              </p>
+            </div>
+            <div className="flex-shrink-0 mt-2">
+              <BidNotificationsDropdown
+                notifications={notifications}
+                onMarkRead={handleMarkRead}
+                onMarkAllRead={handleMarkAllRead}
+                onClear={handleClearNotifications}
+              />
+            </div>
+          </div>
           <div className="section-divider mt-5" />
         </div>
       </motion.header>
@@ -174,6 +256,17 @@ export default function AuctionsPage() {
               transition={{ duration: 0.4, delay: 0.05 }}
             >
               <MarketOverview listings={listings} wantList={wantList} />
+            </motion.div>
+          )}
+
+          {/* Active Bids */}
+          {trackedBids.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.08 }}
+            >
+              <ActiveBids trackedBids={trackedBids} listings={listings} />
             </motion.div>
           )}
 
