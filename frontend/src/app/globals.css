@@ -979,3 +979,243 @@ body {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
 }
+
+/* ───────────────────────────────────────────
+   Workspace Panel (product pages)
+   Full-featured version matching hero-product-shell
+   ─────────────────────────────────────────── */
+.workspace-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.032) 44%, rgba(0, 35, 92, 0.22)),
+    rgba(4, 18, 47, 0.62);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(103, 151, 220, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.workspace-shell::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 36%, rgba(255, 255, 255, 0.14) 47%, rgba(255, 255, 255, 0.04) 55%, transparent 66%);
+  transform: translateX(-36%) rotate(8deg);
+  animation: heroMockupShine 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.workspace-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ───────────────────────────────────────────
+   Premium Card — gradient border + deep shadow
+   ─────────────────────────────────────────── */
+.premium-card {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02) 40%, rgba(0, 25, 70, 0.12)),
+    rgba(4, 14, 38, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(103, 151, 220, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(103, 151, 220, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+}
+
+/* Gradient border reveal on hover */
+.premium-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(103, 151, 220, 0.3) 0%,
+    rgba(200, 16, 46, 0.15) 50%,
+    rgba(103, 151, 220, 0.2) 100%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.premium-card:hover::before {
+  opacity: 1;
+}
+
+/* Left accent bar variants */
+.premium-card[data-accent="good"] {
+  border-left: 2px solid rgba(52, 211, 153, 0.5);
+}
+
+.premium-card[data-accent="warn"] {
+  border-left: 2px solid rgba(251, 191, 36, 0.5);
+}
+
+.premium-card[data-accent="danger"] {
+  border-left: 2px solid rgba(248, 113, 113, 0.5);
+}
+
+/* ───────────────────────────────────────────
+   Premium inner data panel
+   ─────────────────────────────────────────── */
+.data-panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01) 60%, rgba(0, 20, 55, 0.08)),
+    rgba(4, 12, 32, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ───────────────────────────────────────────
+   Premium input styling
+   ─────────────────────────────────────────── */
+.bid-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bid-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.bid-input:focus {
+  outline: none;
+  border-color: rgba(0, 80, 200, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(0, 80, 200, 0.08),
+    0 0 20px rgba(0, 80, 200, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ───────────────────────────────────────────
+   Pill badge pulse
+   ─────────────────────────────────────────── */
+@keyframes pillDotPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 12px currentColor; }
+  50% { opacity: 0.6; box-shadow: 0 0 22px currentColor; }
+}
+
+.pill-dot-pulse {
+  animation: pillDotPulse 3s ease-in-out infinite;
+}
+
+/* ───────────────────────────────────────────
+   Slab preview shimmer + holographic
+   ─────────────────────────────────────────── */
+@keyframes slabShine {
+  0%, 40% { transform: translateX(-120%) rotate(12deg); opacity: 0; }
+  55% { opacity: 0.6; }
+  80%, 100% { transform: translateX(120%) rotate(12deg); opacity: 0; }
+}
+
+@keyframes holoShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.slab-preview {
+  position: relative;
+  overflow: hidden;
+}
+
+.slab-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.14) 48%, rgba(255, 255, 255, 0.05) 54%, transparent 62%);
+  animation: slabShine 6s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.slab-holo {
+  background: linear-gradient(
+    135deg,
+    rgba(120, 180, 255, 0.08) 0%,
+    rgba(200, 140, 255, 0.06) 25%,
+    rgba(255, 180, 120, 0.05) 50%,
+    rgba(120, 255, 200, 0.06) 75%,
+    rgba(120, 180, 255, 0.08) 100%
+  );
+  background-size: 300% 300%;
+  animation: holoShift 8s ease-in-out infinite;
+}
+
+/* ───────────────────────────────────────────
+   Priority group header styling
+   ─────────────────────────────────────────── */
+.priority-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.priority-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02));
+  pointer-events: none;
+}
+
+/* ───────────────────────────────────────────
+   Stat block value glow
+   ─────────────────────────────────────────── */
+.stat-value-glow {
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.stat-value-glow-emerald {
+  text-shadow: 0 0 20px rgba(52, 211, 153, 0.2);
+}
+
+.stat-value-glow-red {
+  text-shadow: 0 0 20px rgba(200, 16, 46, 0.2);
+}
+
+/* ───────────────────────────────────────────
+   Page section divider
+   ─────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06) 20%, rgba(255, 255, 255, 0.06) 80%, transparent);
+}
+
+/* ───────────────────────────────────────────
+   Footer accent line
+   ─────────────────────────────────────────── */
+.footer-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(122, 132, 148, 0.4) 30%, rgba(200, 16, 46, 0.2) 50%, rgba(122, 132, 148, 0.4) 70%, transparent);
+}

@@ -13,6 +13,7 @@ import ActionBar from "@/components/ActionBar";
 import StepIndicator, { type CropStep } from "@/components/StepIndicator";
 import { cropImage, type CropImageResponse } from "@/lib/api";
 
+
 type ViewMode = "upload" | "processing" | "result" | "adjust";
 
 export default function CropPage() {
@@ -83,10 +84,18 @@ export default function CropPage() {
 
   return (
     <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
-      {/* Animated glow blobs */}
+      <div className="haze-upper" />
+      <div className="haze-mid" />
+      <div className="haze-lower" />
+
       <div className="glow-blob glow-blob-blue" />
       <div className="glow-blob glow-blob-red" />
       <div className="glow-blob glow-blob-blue-bottom" />
+      <div className="glow-blob glow-blob-ambient" />
+      <div className="glow-blob glow-blob-upper-right" />
+      <div className="glow-blob glow-blob-deep-bottom" />
+
+      <div className="hero-spotlight-tertiary" />
 
       {/* Header */}
       <motion.header
@@ -117,6 +126,10 @@ export default function CropPage() {
           </Link>
           <div className="flex items-end justify-between">
             <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50 shadow-[0_12px_34px_rgba(0,0,0,0.18)] mb-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C8102E] shadow-[0_0_18px_rgba(200,16,46,0.9)]" />
+                AI Cropping
+              </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
                 <span className="text-white">Crop</span>{" "}
                 <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
@@ -260,9 +273,13 @@ export default function CropPage() {
         transition={{ duration: 0.6, delay: 0.4 }}
         className="relative z-10 px-4 pb-6 pt-2"
       >
-        <p className="text-center text-white/20 text-xs">
-          CollectHub &middot; Baseball Card Tools
-        </p>
+        <div className="flex items-center justify-center gap-3">
+          <span className="h-px w-12" style={{ background: "linear-gradient(to right, transparent, #7a8494)" }} />
+          <p className="text-xs tracking-widest uppercase font-medium" style={{ color: "#6a7484" }}>
+            CollectHub &middot; Baseball Card Tools
+          </p>
+          <span className="h-px w-12" style={{ background: "linear-gradient(to left, transparent, #7a8494)" }} />
+        </div>
       </motion.footer>
     </div>
   );

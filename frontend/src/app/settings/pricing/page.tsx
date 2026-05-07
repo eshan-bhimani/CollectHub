@@ -11,6 +11,7 @@ import {
   PLATFORM_LIST,
 } from "@/lib/pricingStrategy";
 
+
 export default function PricingSettingsPage() {
   const [strategy, setStrategy] = useState<PricingStrategy>({
     enabled: true,
@@ -38,9 +39,18 @@ export default function PricingSettingsPage() {
 
   return (
     <div className="bg-landing min-h-dvh flex flex-col noise-overlay vignette relative overflow-hidden">
+      <div className="haze-upper" />
+      <div className="haze-mid" />
+      <div className="haze-lower" />
+
       <div className="glow-blob glow-blob-blue" />
       <div className="glow-blob glow-blob-red" />
       <div className="glow-blob glow-blob-blue-bottom" />
+      <div className="glow-blob glow-blob-ambient" />
+      <div className="glow-blob glow-blob-upper-right" />
+      <div className="glow-blob glow-blob-deep-bottom" />
+
+      <div className="hero-spotlight-tertiary" />
 
       {/* Header */}
       <motion.header
@@ -69,16 +79,21 @@ export default function PricingSettingsPage() {
             </svg>
             Auctions
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50 shadow-[0_12px_34px_rgba(0,0,0,0.18)] backdrop-blur-sm mb-4">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#C8102E] shadow-[0_0_18px_rgba(200,16,46,0.9)] pill-dot-pulse" style={{ color: "#C8102E" }} />
+            Bid Strategy
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
             <span className="text-white">Pricing</span>{" "}
-            <span className="bg-gradient-to-r from-[#C8102E] to-[#e8354a] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C8102E] via-[#e8354a] to-[#ff6b6b] bg-clip-text text-transparent">
               Strategy
             </span>
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-white/35 text-sm mt-1.5">
             Configure how much you&apos;re willing to pay relative to market
             averages
           </p>
+          <div className="section-divider mt-5" />
         </div>
       </motion.header>
 
@@ -89,7 +104,7 @@ export default function PricingSettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="glass-card rounded-xl p-5"
+            className="premium-card rounded-2xl p-5"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -126,7 +141,7 @@ export default function PricingSettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
-            className="glass-card rounded-xl p-5"
+            className="premium-card rounded-2xl p-5"
           >
             <h2 className="text-sm font-semibold text-white/90 mb-1">
               Bid Threshold
@@ -180,7 +195,7 @@ export default function PricingSettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="glass-card rounded-xl p-5"
+            className="premium-card rounded-2xl p-5"
           >
             <h2 className="text-sm font-semibold text-white/90 mb-1">
               Price Source
@@ -216,7 +231,7 @@ export default function PricingSettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.25 }}
-            className="glass-card rounded-xl p-5"
+            className="premium-card rounded-2xl p-5"
           >
             <h2 className="text-sm font-semibold text-white/90 mb-1">
               Buyer&apos;s Premiums
@@ -270,11 +285,16 @@ export default function PricingSettingsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        className="relative z-10 px-4 pb-6 pt-2"
+        className="relative z-10 px-4 pb-8 pt-4"
       >
-        <p className="text-center text-white/20 text-xs">
-          CollectHub &middot; Pricing Strategy Settings
-        </p>
+        <div className="max-w-xl mx-auto">
+          <div className="footer-line mb-4" />
+          <div className="flex items-center justify-center">
+            <p className="text-[11px] tracking-[0.2em] uppercase font-medium text-white/15">
+              CollectHub &middot; Pricing Strategy
+            </p>
+          </div>
+        </div>
       </motion.footer>
     </div>
   );
