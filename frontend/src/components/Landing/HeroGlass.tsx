@@ -29,19 +29,36 @@ export default function HeroGlass() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }}
-            className="text-balance text-4xl font-extrabold leading-[1.03] text-white sm:text-5xl lg:text-6xl xl:text-7xl"
+            className="text-balance text-4xl font-extrabold leading-[1.03] sm:text-5xl lg:text-6xl xl:text-7xl"
           >
-            The AI Command Center for Baseball Card Collectors
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(160deg, #8a96a8 0%, #c8d0dc 18%, #e8ecf2 30%, #f4f6f9 42%, #ffffff 50%, #f4f6f9 58%, #e0e5ed 68%, #c0c9d6 82%, #8a96a8 100%)",
+              }}
+            >
+              #1 AI Platform for Baseball Card Collectors
+            </span>
           </motion.h1>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.24, ease: "easeOut" }}
-            className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/62 sm:text-lg lg:mx-0 lg:max-w-xl"
+            className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 lg:justify-start"
           >
-            Crop, grade, track, auction, and manage your entire card collection in one place.
-          </motion.p>
+            {["Crop", "Grade", "Auction", "Collect", "Manage"].map((item, i) => (
+              <span key={item} className="flex items-center gap-2">
+                {i > 0 && (
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                )}
+                <span className="text-sm font-semibold uppercase tracking-[0.12em] text-white/50 sm:text-base">
+                  {item}
+                </span>
+              </span>
+            ))}
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}

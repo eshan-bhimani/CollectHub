@@ -58,7 +58,7 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide">
+              <label className="form-label">
                 Email
               </label>
               <input
@@ -73,7 +73,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide">
+              <label className="form-label">
                 Password
               </label>
               <input

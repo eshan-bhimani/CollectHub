@@ -252,10 +252,8 @@ export default function ProposeTradeModal({
               )}
 
               {/* Cash offer */}
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-2">
-                  Cash Supplement (optional)
-                </p>
+              <div className="form-group">
+                <label className="form-label">Cash Supplement (optional)</label>
                 <input
                   type="number"
                   placeholder="$0"
@@ -267,10 +265,8 @@ export default function ProposeTradeModal({
               </div>
 
               {/* Message */}
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-2">
-                  Message (optional)
-                </p>
+              <div className="form-group">
+                <label className="form-label">Message (optional)</label>
                 <textarea
                   placeholder="Add a note to the trader..."
                   value={message}

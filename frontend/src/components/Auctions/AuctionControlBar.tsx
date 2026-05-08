@@ -79,23 +79,14 @@ export default function AuctionControlBar({
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value as SortOption)}
-            className="appearance-none bg-white/[0.03] border border-white/[0.08] text-white/50 text-xs font-medium rounded-lg px-3 py-1.5 pr-7 cursor-pointer hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 focus:outline-none focus:border-white/20"
+            className="bid-input text-xs font-medium rounded-lg px-3 py-1.5"
           >
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value} className="bg-[#0a1628] text-white">
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
           </select>
-          <svg
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-          </svg>
         </div>
       </div>
     </div>

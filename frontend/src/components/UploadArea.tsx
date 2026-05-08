@@ -99,51 +99,36 @@ export default function UploadArea({ onFileSelected, disabled }: UploadAreaProps
           disabled={disabled}
         />
 
-        {/* Animated upload icon */}
+        {/* Upload icon */}
         <motion.div
-          animate={isDragOver ? { scale: 1.15, y: -5 } : { scale: 1, y: 0 }}
+          animate={isDragOver ? { scale: 1.1, y: -6 } : { scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className={`
-            w-20 h-20 rounded-2xl flex items-center justify-center
+            w-24 h-24 rounded-3xl flex items-center justify-center
             transition-all duration-300 upload-icon-container
             ${isDragOver ? "upload-icon-active" : ""}
           `}
         >
           <svg
-            className={`w-9 h-9 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
+            className={`w-11 h-11 transition-colors duration-300 ${isDragOver ? "text-blue-300" : "text-blue-400"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth={1.5}
+            strokeWidth={1.4}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V3m0 0l-4 4m4-4l4 4" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17" />
           </svg>
         </motion.div>
 
-        <div>
-          <p className="text-white/90 font-semibold text-lg">
-            {isDragOver ? "Drop your card image" : "Upload a card image"}
-          </p>
-          <p className="text-white/40 text-sm mt-1.5">
-            Tap to select or drag &amp; drop
-          </p>
-        </div>
+        <p className="text-white/70 font-semibold text-sm">
+          {isDragOver ? "Drop to upload" : "Select or drop a card image"}
+        </p>
 
-        {/* File type badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {["JPEG", "PNG", "WebP", "HEIC"].map((format) => (
-            <span
-              key={format}
-              className="text-[10px] font-medium text-white/30 px-2 py-0.5 rounded-md bg-white/5 border border-white/5"
-            >
-              {format}
-            </span>
-          ))}
-          <span className="text-[10px] text-white/20">Max {MAX_SIZE_MB}MB</span>
+        <div className="flex items-center gap-3 text-[10px] text-white/20">
+          <span>JPG, PNG, WebP, HEIC</span>
+          <span className="w-px h-3 bg-white/10" />
+          <span>Max {MAX_SIZE_MB}MB</span>
         </div>
       </div>
 

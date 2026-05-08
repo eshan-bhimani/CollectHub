@@ -41,101 +41,149 @@ export default function CollectionForm({
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="premium-card rounded-2xl p-5 sm:p-6 space-y-4">
+      <div className="premium-card rounded-2xl p-5 sm:p-6 space-y-5">
         <SectionLabel>{isEditing ? "Edit Card" : "Add Card"}</SectionLabel>
 
-        <div className="grid grid-cols-2 gap-3">
-          <input
-            type="text"
-            placeholder="Player Name *"
-            value={form.playerName}
-            onChange={(e) => set({ playerName: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs col-span-2"
-          />
-          <input
-            type="number"
-            placeholder="Year"
-            value={form.year}
-            onChange={(e) => set({ year: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-          />
-          <input
-            type="text"
-            placeholder="Brand"
-            value={form.brand}
-            onChange={(e) => set({ brand: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-          />
-          <input
-            type="text"
-            placeholder="Set Name"
-            value={form.setName}
-            onChange={(e) => set({ setName: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-          />
-          <select
-            value={form.gradingCompany}
-            onChange={(e) =>
-              set({
-                gradingCompany: e.target.value as "PSA" | "BGS" | "SGC" | "raw",
-                grade: e.target.value === "raw" ? "" : form.grade,
-              })
-            }
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-          >
-            <option value="PSA">PSA</option>
-            <option value="BGS">BGS</option>
-            <option value="SGC">SGC</option>
-            <option value="raw">Raw</option>
-          </select>
-          {form.gradingCompany !== "raw" && (
+        <div className="grid grid-cols-2 gap-4">
+          {/* Player Name */}
+          <div className="form-group col-span-2">
+            <label className="form-label">Player Name *</label>
+            <input
+              type="text"
+              placeholder="e.g. Mike Trout"
+              value={form.playerName}
+              onChange={(e) => set({ playerName: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+            />
+          </div>
+
+          {/* Year */}
+          <div className="form-group">
+            <label className="form-label">Year</label>
             <input
               type="number"
-              placeholder="Grade"
-              value={form.grade}
-              onChange={(e) => set({ grade: e.target.value })}
+              placeholder="e.g. 2011"
+              value={form.year}
+              onChange={(e) => set({ year: e.target.value })}
               className="bid-input px-3.5 py-3 rounded-xl text-xs"
-              min="1"
-              max="10"
-              step="0.5"
             />
+          </div>
+
+          {/* Brand */}
+          <div className="form-group">
+            <label className="form-label">Brand</label>
+            <input
+              type="text"
+              placeholder="e.g. Topps"
+              value={form.brand}
+              onChange={(e) => set({ brand: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+            />
+          </div>
+
+          {/* Set Name */}
+          <div className="form-group">
+            <label className="form-label">Set Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Topps Chrome"
+              value={form.setName}
+              onChange={(e) => set({ setName: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+            />
+          </div>
+
+          {/* Grading Company */}
+          <div className="form-group">
+            <label className="form-label">Grading</label>
+            <select
+              value={form.gradingCompany}
+              onChange={(e) =>
+                set({
+                  gradingCompany: e.target.value as "PSA" | "BGS" | "SGC" | "raw",
+                  grade: e.target.value === "raw" ? "" : form.grade,
+                })
+              }
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+            >
+              <option value="PSA">PSA</option>
+              <option value="BGS">BGS</option>
+              <option value="SGC">SGC</option>
+              <option value="raw">Raw / Ungraded</option>
+            </select>
+          </div>
+
+          {/* Grade */}
+          {form.gradingCompany !== "raw" && (
+            <div className="form-group">
+              <label className="form-label">Grade</label>
+              <input
+                type="number"
+                placeholder="e.g. 9.5"
+                value={form.grade}
+                onChange={(e) => set({ grade: e.target.value })}
+                className="bid-input px-3.5 py-3 rounded-xl text-xs"
+                min="1"
+                max="10"
+                step="0.5"
+              />
+            </div>
           )}
-          <input
-            type="number"
-            placeholder="Purchase Price *"
-            value={form.purchasePrice}
-            onChange={(e) => set({ purchasePrice: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-            min="0"
-            step="0.01"
-          />
-          <input
-            type="text"
-            placeholder="Cert Number"
-            value={form.certNumber}
-            onChange={(e) => set({ certNumber: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs"
-          />
-          <textarea
-            placeholder="Notes"
-            value={form.notes}
-            onChange={(e) => set({ notes: e.target.value })}
-            className="bid-input px-3.5 py-3 rounded-xl text-xs col-span-2 resize-none"
-            rows={2}
-          />
+
+          {/* Purchase Price */}
+          <div className="form-group">
+            <label className="form-label">Purchase Price *</label>
+            <input
+              type="number"
+              placeholder="$0.00"
+              value={form.purchasePrice}
+              onChange={(e) => set({ purchasePrice: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+              min="0"
+              step="0.01"
+            />
+          </div>
+
+          {/* Cert Number */}
+          <div className="form-group">
+            <label className="form-label">Cert Number</label>
+            <input
+              type="text"
+              placeholder="e.g. 12345678"
+              value={form.certNumber}
+              onChange={(e) => set({ certNumber: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs"
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="form-group col-span-2">
+            <label className="form-label">Notes</label>
+            <textarea
+              placeholder="Any additional details about this card..."
+              value={form.notes}
+              onChange={(e) => set({ notes: e.target.value })}
+              className="bid-input px-3.5 py-3 rounded-xl text-xs resize-none"
+              rows={2}
+            />
+          </div>
         </div>
 
-        <label className="flex items-center gap-2.5 text-xs text-white/40 cursor-pointer select-none">
+        {/* For Trade toggle */}
+        <label className="flex items-center gap-3 cursor-pointer select-none group">
           <input
             type="checkbox"
             checked={form.forTrade}
             onChange={(e) => set({ forTrade: e.target.checked })}
-            className="rounded border-white/20"
+            className="form-checkbox"
           />
-          Available for trade
+          <span className="text-xs font-medium text-white/40 group-hover:text-white/55 transition-colors">
+            Available for trade
+          </span>
         </label>
 
-        <div className="flex gap-2 pt-1">
+        {/* Actions */}
+        <div className="flex gap-2.5 pt-1">
           <button
             onClick={onSubmit}
             disabled={!canSubmit}
