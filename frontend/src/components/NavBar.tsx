@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/auctions",         label: "Auctions"   },
   { href: "/collection",       label: "Collection" },
   { href: "/wants",            label: "Wants"      },
+  { href: "/trades",           label: "Trades"     },
   { href: "/settings/pricing", label: "Pricing"    },
 ];
 
