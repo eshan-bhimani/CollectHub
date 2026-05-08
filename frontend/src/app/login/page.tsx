@@ -12,6 +12,7 @@ const ERROR_MESSAGES: Record<AuthError, string> = {
   WRONG_PASSWORD:  "Incorrect password. Please try again.",
   EMAIL_IN_USE:    "That email is already registered.",
   INVALID_INPUT:   "Please fill in all fields.",
+  SERVER_ERROR:    "Something went wrong. Please try again.",
 };
 
 export default function LoginPage() {

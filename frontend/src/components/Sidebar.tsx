@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const SIDEBAR_KEY = "collecthub_sidebar_collapsed";
 
@@ -69,7 +70,10 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(true);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     try {
@@ -86,10 +90,14 @@ export default function Sidebar() {
     });
   }, []);
 
+  const isExpanded = !collapsed || hovered;
+
   return (
     <aside
-      className="fixed left-0 top-14 bottom-0 z-40 flex flex-col border-r border-white/[0.06] bg-[#001030]/90 backdrop-blur-xl overflow-hidden transition-[width] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
-      style={{ width: collapsed ? 56 : 200 }}
+      className="fixed left-0 top-14 bottom-0 z-40 flex flex-col border-r border-white/[0.06] bg-[#080e24]/92 backdrop-blur-xl overflow-hidden transition-[width] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{ width: isExpanded ? 200 : 56 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {/* Nav items */}
       <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
@@ -99,7 +107,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              title={collapsed ? label : undefined}
+              title={!isExpanded ? label : undefined}
               className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 ${
                 isActive
                   ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -126,6 +134,94 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Auth section */}
+      {!loading && (
+        <div className="px-2 pb-1">
+          {user ? (
+            <>
+              <div
+                title={!isExpanded ? user.name : undefined}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-white/50"
+              >
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
+                <span
+                  className="text-xs font-medium whitespace-nowrap overflow-hidden truncate transition-[opacity,max-width] duration-200"
+                  style={{ maxWidth: isExpanded ? 140 : 0, opacity: isExpanded ? 1 : 0 }}
+                >
+                  {user.name.split(" ")[0]}
+                </span>
+              </div>
+              <button
+                onClick={() => { logout(); router.push("/"); }}
+                title={!isExpanded ? "Sign out" : undefined}
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-all duration-200"
+              >
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </span>
+                <span
+                  className="text-xs font-medium whitespace-nowrap overflow-hidden transition-[opacity,max-width] duration-200"
+                  style={{ maxWidth: isExpanded ? 140 : 0, opacity: isExpanded ? 1 : 0 }}
+                >
+                  Sign out
+                </span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                title={!isExpanded ? "Log in" : undefined}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all duration-200"
+              >
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                </span>
+                <span
+                  className="text-xs font-medium whitespace-nowrap overflow-hidden transition-[opacity,max-width] duration-200"
+                  style={{ maxWidth: isExpanded ? 140 : 0, opacity: isExpanded ? 1 : 0 }}
+                >
+                  Log in
+                </span>
+              </Link>
+              <Link
+                href="/signup"
+                title={!isExpanded ? "Sign up" : undefined}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[#C8102E]/80 hover:text-[#C8102E] hover:bg-[#C8102E]/[0.06] transition-all duration-200"
+              >
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
+                </span>
+                <span
+                  className="text-xs font-medium whitespace-nowrap overflow-hidden transition-[opacity,max-width] duration-200"
+                  style={{ maxWidth: isExpanded ? 140 : 0, opacity: isExpanded ? 1 : 0 }}
+                >
+                  Sign up
+                </span>
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Toggle button */}
       <div className="p-2 border-t border-white/[0.06]">
         <button
@@ -143,7 +239,7 @@ export default function Sidebar() {
               strokeLinecap="round"
               strokeLinejoin="round"
               className="transition-transform duration-250"
-              style={{ transform: collapsed ? "rotate(0deg)" : "rotate(180deg)" }}
+              style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
             >
               <path d="M13 17l5-5-5-5" />
               <path d="M6 17l5-5-5-5" />
@@ -152,8 +248,8 @@ export default function Sidebar() {
           <span
             className="text-[10px] font-medium uppercase tracking-wider whitespace-nowrap overflow-hidden transition-[opacity,max-width] duration-200"
             style={{
-              maxWidth: collapsed ? 0 : 80,
-              opacity: collapsed ? 0 : 1,
+              maxWidth: isExpanded ? 80 : 0,
+              opacity: isExpanded ? 1 : 0,
             }}
           >
             Collapse

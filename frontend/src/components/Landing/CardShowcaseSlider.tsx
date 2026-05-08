@@ -192,19 +192,23 @@ export default function CardShowcaseSlider() {
         transition={{ duration: 0.6 }}
         className="max-w-5xl mx-auto"
       >
-        {/* Section header */}
-        <div className="text-center mb-6 px-4">
-          <h2 className="text-lg sm:text-xl font-bold text-white/90">
+        <div className="text-center mb-8 px-4">
+          <div className="flex items-center justify-center gap-2.5 mb-4">
+            <span className="h-px w-8" style={{ background: "linear-gradient(to right, transparent, rgba(198, 159, 82, 0.4))" }} />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "radial-gradient(circle, rgba(198, 159, 82, 0.6), rgba(198, 139, 62, 0.2))" }} />
+            <span className="h-px w-8" style={{ background: "linear-gradient(to left, transparent, rgba(198, 159, 82, 0.4))" }} />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white/90">
             Premium Card Showcase
           </h2>
-          <p className="text-xs sm:text-sm text-white/40 mt-1">
+          <p className="text-xs sm:text-sm text-white/38 mt-2">
             Star player cards, auto-cropped and graded
           </p>
         </div>
 
         {/* Dashboard frame */}
         <div
-          className="glass-card rounded-2xl py-6 sm:py-8 mx-4 overflow-hidden relative"
+          className="glass-card rounded-3xl py-6 sm:py-8 mx-4 overflow-hidden relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}

@@ -12,6 +12,7 @@ const ERROR_MESSAGES: Record<AuthError, string> = {
   INVALID_INPUT:  "Please fill in all fields.",
   USER_NOT_FOUND: "No account found with that email.",
   WRONG_PASSWORD: "Incorrect password.",
+  SERVER_ERROR:   "Something went wrong. Please try again.",
 };
 
 export default function SignupPage() {

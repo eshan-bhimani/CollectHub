@@ -24,7 +24,7 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-4 backdrop-blur-md bg-[#001437]/60 border-b border-white/[0.06]">
+    <nav className="fixed top-0 left-0 right-0 z-50 px-4 backdrop-blur-xl bg-[#0a1428]/72 border-b border-white/[0.06]">
       <div className="max-w-5xl mx-auto flex items-center justify-between h-14">
 
         {/* Brand */}

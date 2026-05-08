@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# iOS build output (Capacitor)
+frontend/ios/
+
+# Root lock files
+package-lock.json
+
+# Node
+node_modules/

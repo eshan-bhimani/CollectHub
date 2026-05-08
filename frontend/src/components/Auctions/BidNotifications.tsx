@@ -74,10 +74,10 @@ export default function BidNotifications({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-white/[0.12] bg-[#04122f]/95 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-50"
+            className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-white/[0.12] bg-[#080e24]/95 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-50"
           >
             {/* Header */}
-            <div className="sticky top-0 px-4 py-3 border-b border-white/[0.06] bg-[#04122f]/95 backdrop-blur-xl flex items-center justify-between">
+            <div className="sticky top-0 px-4 py-3 border-b border-white/[0.06] bg-[#080e24]/95 backdrop-blur-xl flex items-center justify-between">
               <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Notifications</span>
               <div className="flex gap-2">
                 {unreadCount > 0 && (

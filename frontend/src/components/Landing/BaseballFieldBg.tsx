@@ -49,11 +49,11 @@ function crowdRowPath(
 }
 
 const CROWD_ROWS = [
-  { offset: 0,   headH: 20, fill: "#2a5098", opacity: 0.85 },
-  { offset: 27,  headH: 19, fill: "#24468a", opacity: 0.75 },
-  { offset: 52,  headH: 18, fill: "#1e3c7c", opacity: 0.62 },
-  { offset: 76,  headH: 17, fill: "#18326e", opacity: 0.46 },
-  { offset: 99,  headH: 16, fill: "#122860", opacity: 0.30 },
+  { offset: 0,   headH: 20, fill: "#2e4878", opacity: 0.85 },
+  { offset: 27,  headH: 19, fill: "#28406e", opacity: 0.75 },
+  { offset: 52,  headH: 18, fill: "#223864", opacity: 0.62 },
+  { offset: 76,  headH: 17, fill: "#1c305a", opacity: 0.46 },
+  { offset: 99,  headH: 16, fill: "#162850", opacity: 0.30 },
 ];
 
 export default function BaseballFieldBg() {

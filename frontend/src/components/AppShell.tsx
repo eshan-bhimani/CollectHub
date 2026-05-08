@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 
-const NO_SIDEBAR_ROUTES = ["/", "/login", "/signup"];
+const NO_SIDEBAR_ROUTES = ["/login", "/signup"];
 const SIDEBAR_KEY = "collecthub_sidebar_collapsed";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

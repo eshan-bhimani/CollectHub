@@ -30,7 +30,7 @@ export default function AuctionControlBar({
   onSortChange,
 }: AuctionControlBarProps) {
   return (
-    <div className="sticky top-14 z-20 rounded-2xl border border-white/[0.12] bg-[#04122f]/80 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] p-3 sm:p-4 space-y-3">
+    <div className="sticky top-14 z-20 rounded-2xl border border-white/[0.12] bg-[#080e24]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] p-3 sm:p-4 space-y-3">
       {/* Search */}
       <div className="relative">
         <svg
