@@ -10,6 +10,7 @@ Responsibilities of this file:
 
 Everything else lives in api/, models/, schemas/, middleware/, db/.
 """
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -25,7 +26,7 @@ from config import settings
 from db.database import engine
 import models  # noqa: F401 — registers all ORM models with Base.metadata
 from db.database import Base
-from api import auth, crop, uploads, collections, wants, auctions
+from api import auth, crop, uploads, collections, wants, auctions, drive
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,7 +43,13 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables ready — environment: %s", settings.environment)
+
+    from tasks.drive_poller import start_drive_poller
+    poller_task = asyncio.create_task(start_drive_poller(app))
+
     yield
+
+    poller_task.cancel()
     logger.info("CollectHub API shutting down")
 
 
@@ -77,6 +84,7 @@ app.include_router(uploads.router,     prefix="/api",        tags=["uploads"])
 app.include_router(collections.router, prefix="/api",        tags=["collections"])
 app.include_router(wants.router,       prefix="/api",        tags=["wants"])
 app.include_router(auctions.router,    prefix="/api",        tags=["auctions"])
+app.include_router(drive.router,       prefix="/api/drive",  tags=["drive"])
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────

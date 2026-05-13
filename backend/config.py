@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     google_client_secret: Optional[str] = None
     google_redirect_uri: str = "http://localhost:8000/api/auth/google/callback"
 
+    # ── Google Drive Integration ──────────────────────────────────────────────
+    google_drive_redirect_uri: str = "http://localhost:8000/api/drive/callback"
+    drive_poll_interval_seconds: int = 300
+    drive_encryption_key: Optional[str] = None
+
     # ── Google Cloud Storage ───────────────────────────────────────────────────
     gcs_bucket_name: Optional[str] = None
     gcs_credentials_path: Optional[str] = None

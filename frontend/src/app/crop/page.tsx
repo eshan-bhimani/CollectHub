@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import UploadArea from "@/components/UploadArea";
+import DriveIntegration from "@/components/DriveIntegration";
 import ProcessingStatus, {
   type ProcessingState,
 } from "@/components/ProcessingStatus";
@@ -174,6 +175,9 @@ export default function CropPage() {
                     onFileSelected={handleFileSelected}
                     disabled={isProcessing}
                   />
+                </div>
+                <div className="mt-3">
+                  <DriveIntegration />
                 </div>
               </motion.div>
             )}
