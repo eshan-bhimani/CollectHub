@@ -89,6 +89,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+# Install Playwright browser (required for PSA Registry sync)
+playwright install chromium
+
 # Run server
 python app.py
 ```

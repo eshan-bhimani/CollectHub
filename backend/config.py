@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     drive_poll_interval_seconds: int = 300
     drive_encryption_key: Optional[str] = None
 
+    # ── Gemini AI ──────────────────────────────────────────────────────────────
+    gemini_api_key: Optional[str] = None
+
     # ── Google Cloud Storage ───────────────────────────────────────────────────
     gcs_bucket_name: Optional[str] = None
     gcs_credentials_path: Optional[str] = None

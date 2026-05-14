@@ -40,6 +40,13 @@ class Card(Base):
     is_for_sale = Column(Boolean, default=False, nullable=False)
     asking_price = Column(Float)
 
+    # ── Invoice import ────────────────────────────────────────────────────────
+    lot_number = Column(String(20), nullable=True)
+    import_status = Column(String(20), nullable=True)
+    invoice_import_id = Column(
+        String(36), ForeignKey("invoice_imports.id"), nullable=True
+    )
+
     notes = Column(Text)
 
     created_at = Column(
@@ -54,3 +61,4 @@ class Card(Base):
     )
 
     owner = relationship("User", back_populates="cards")
+    invoice_import = relationship("InvoiceImport", back_populates="cards")

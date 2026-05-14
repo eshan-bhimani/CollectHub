@@ -26,7 +26,7 @@ from config import settings
 from db.database import engine
 import models  # noqa: F401 — registers all ORM models with Base.metadata
 from db.database import Base
-from api import auth, crop, uploads, collections, wants, auctions, drive
+from api import auth, crop, uploads, collections, wants, auctions, drive, invoice, psa
 
 logging.basicConfig(
     level=logging.INFO,
@@ -85,6 +85,8 @@ app.include_router(collections.router, prefix="/api",        tags=["collections"
 app.include_router(wants.router,       prefix="/api",        tags=["wants"])
 app.include_router(auctions.router,    prefix="/api",        tags=["auctions"])
 app.include_router(drive.router,       prefix="/api/drive",  tags=["drive"])
+app.include_router(invoice.router,     prefix="/api/invoice", tags=["invoice"])
+app.include_router(psa.router,         prefix="/api/psa",    tags=["psa"])
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────

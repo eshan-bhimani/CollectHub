@@ -31,3 +31,9 @@ class User(Base):
     auction_watches = relationship(
         "AuctionWatch", back_populates="owner", cascade="all, delete-orphan"
     )
+    psa_credential = relationship(
+        "PSACredential", uselist=False, cascade="all, delete-orphan"
+    )
+    invoice_imports = relationship(
+        "InvoiceImport", cascade="all, delete-orphan"
+    )
