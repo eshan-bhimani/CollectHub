@@ -26,7 +26,7 @@ from config import settings
 from db.database import engine
 import models  # noqa: F401 — registers all ORM models with Base.metadata
 from db.database import Base
-from api import auth, crop, uploads, collections, wants, auctions, drive, invoice, psa
+from api import auth, crop, uploads, collections, wants, auctions, drive, invoice, psa, shipment
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,11 +45,14 @@ async def lifespan(app: FastAPI):
     logger.info("Database tables ready — environment: %s", settings.environment)
 
     from tasks.drive_poller import start_drive_poller
-    poller_task = asyncio.create_task(start_drive_poller(app))
+    from tasks.shipment_poller import start_shipment_poller
+    drive_task = asyncio.create_task(start_drive_poller(app))
+    shipment_task = asyncio.create_task(start_shipment_poller(app))
 
     yield
 
-    poller_task.cancel()
+    drive_task.cancel()
+    shipment_task.cancel()
     logger.info("CollectHub API shutting down")
 
 
@@ -87,6 +90,7 @@ app.include_router(auctions.router,    prefix="/api",        tags=["auctions"])
 app.include_router(drive.router,       prefix="/api/drive",  tags=["drive"])
 app.include_router(invoice.router,     prefix="/api/invoice", tags=["invoice"])
 app.include_router(psa.router,         prefix="/api/psa",    tags=["psa"])
+app.include_router(shipment.router,    prefix="/api/shipment", tags=["shipment"])
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────
