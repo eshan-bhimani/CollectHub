@@ -5,3 +5,4 @@ from models.wants import WantItem   # noqa: F401
 from models.auction import AuctionWatch  # noqa: F401
 from models.drive import DriveToken, WatchedFolder  # noqa: F401
 from models.invoice import PSACredential, InvoiceImport  # noqa: F401
+from models.shipment import Shipment  # noqa: F401

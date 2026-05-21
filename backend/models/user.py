@@ -37,3 +37,6 @@ class User(Base):
     invoice_imports = relationship(
         "InvoiceImport", cascade="all, delete-orphan"
     )
+    shipments = relationship(
+        "Shipment", cascade="all, delete-orphan"
+    )
