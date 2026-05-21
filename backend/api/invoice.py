@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/ping")
+def invoice_ping():
+    return {"ok": True}
+
+
 def process_item(import_id: str, item: dict, user_id: str) -> None:
     db = SessionLocal()
     try:
