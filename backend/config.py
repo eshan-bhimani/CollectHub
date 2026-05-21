@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     drive_poll_interval_seconds: int = 300
     drive_encryption_key: Optional[str] = None
 
+    # ── Shipment Tracking (Shippo + Resend) ─────────────────────────────────
+    shippo_api_key: Optional[str] = None
+    resend_api_key: Optional[str] = None
+
     # ── Gemini AI ──────────────────────────────────────────────────────────────
     gemini_api_key: Optional[str] = None
 
