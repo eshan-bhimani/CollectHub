@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/ping")
+def psa_ping():
+    return {"ok": True}
+
+
 class PSAConnectRequest(BaseModel):
     email: str
     password: str
