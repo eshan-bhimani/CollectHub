@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface DriveStatus {
   connected: boolean;
@@ -19,18 +20,6 @@ interface WatchedFolder {
   folder_id: string;
   folder_name: string;
   last_polled_at: string | null;
-}
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem("token");
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed.access_token ?? raw;
-  } catch {
-    return raw;
-  }
 }
 
 function authHeaders(): Record<string, string> {
