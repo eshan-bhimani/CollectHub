@@ -9,10 +9,12 @@ from db.database import get_db, SessionLocal
 from middleware.auth import get_current_user
 from models.card import Card
 from models.invoice import InvoiceImport, PSACredential
+from models.shipment import Shipment
 from models.user import User
 from utils.google_drive import decrypt_token
 from utils.invoice_parser import extract_invoice
 from utils.psa_client import PSAClient, PSACertNotFoundError, PSARateLimitError
+from utils.shipment_tracker import detect_carrier
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -170,6 +172,23 @@ async def invoice_upload(
     db.add(inv)
     db.commit()
     db.refresh(inv)
+
+    if inv.tracking_number:
+        existing = (
+            db.query(Shipment)
+            .filter(Shipment.invoice_import_id == inv.id)
+            .first()
+        )
+        if not existing:
+            shipment = Shipment(
+                user_id=current_user.id,
+                invoice_import_id=inv.id,
+                tracking_number=inv.tracking_number,
+                carrier=detect_carrier(inv.tracking_number),
+                destination="other",
+            )
+            db.add(shipment)
+            db.commit()
 
     background_tasks.add_background_task(_run_processing, inv.id, items, current_user.id)
 
