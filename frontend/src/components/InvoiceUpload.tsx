@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface PSAStatus {
   connected: boolean;
@@ -19,18 +20,6 @@ interface ImportStatus {
   items_pending: number;
   status: string;
   grand_total: number;
-}
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem("token");
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed.access_token ?? raw;
-  } catch {
-    return raw;
-  }
 }
 
 function authHeaders(): Record<string, string> {
@@ -57,12 +46,15 @@ export default function InvoiceUpload() {
   };
 
   const fetchPSAStatus = useCallback(async () => {
+    if (!getToken()) return;
     try {
       const res = await fetch(`${API}/api/psa/status`, {
         headers: authHeaders(),
       });
       if (res.ok) setPsaStatus(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error("fetchPSAStatus failed:", err);
+    }
   }, []);
 
   useEffect(() => {
@@ -74,6 +66,10 @@ export default function InvoiceUpload() {
 
   const handlePSAConnect = async () => {
     if (!psaEmail || !psaPassword) return;
+    if (!getToken()) {
+      showToast("Please log in first");
+      return;
+    }
     setPsaLoading(true);
     try {
       const res = await fetch(`${API}/api/psa/connect`, {
@@ -89,7 +85,8 @@ export default function InvoiceUpload() {
         const err = await res.json().catch(() => ({ detail: "Connection failed" }));
         showToast(err.detail);
       }
-    } catch {
+    } catch (err) {
+      console.error("PSA connect failed:", err);
       showToast("Connection error");
     }
     setPsaLoading(false);
@@ -119,11 +116,17 @@ export default function InvoiceUpload() {
             pollRef.current = null;
           }
         }
-      } catch {}
+      } catch (err) {
+        console.error("Poll import status failed:", err);
+      }
     }, 3000);
   };
 
   const uploadPDF = async (file: File) => {
+    if (!getToken()) {
+      showToast("Please log in first");
+      return;
+    }
     setUploading(true);
     setImportStatus(null);
     try {
@@ -151,7 +154,8 @@ export default function InvoiceUpload() {
         const err = await res.json().catch(() => ({ detail: "Upload failed" }));
         showToast(err.detail);
       }
-    } catch {
+    } catch (err) {
+      console.error("Invoice upload failed:", err);
       showToast("Upload error");
     }
     setUploading(false);
