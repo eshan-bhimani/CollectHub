@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = "";
 
 interface DriveStatus {
   connected: boolean;
@@ -51,7 +51,9 @@ export default function DriveIntegration() {
         setStatus(data);
         return data;
       }
-    } catch {}
+    } catch (err) {
+      console.error("fetchStatus failed:", err);
+    }
     return null;
   }, []);
 
@@ -61,7 +63,9 @@ export default function DriveIntegration() {
         headers: authHeaders(),
       });
       if (res.ok) setFolders(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error("fetchFolders failed:", err);
+    }
   }, []);
 
   const fetchWatched = useCallback(async () => {
@@ -70,7 +74,9 @@ export default function DriveIntegration() {
         headers: authHeaders(),
       });
       if (res.ok) setWatched(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error("fetchWatched failed:", err);
+    }
   }, []);
 
   useEffect(() => {
@@ -108,7 +114,8 @@ export default function DriveIntegration() {
       } else {
         showToast("Failed to start Google Drive auth");
       }
-    } catch {
+    } catch (err) {
+      console.error("Drive auth failed:", err);
       showToast("Connection error");
     }
     setLoading(false);
@@ -144,7 +151,8 @@ export default function DriveIntegration() {
         const err = await res.json().catch(() => ({ detail: "Failed" }));
         showToast(err.detail);
       }
-    } catch {
+    } catch (err) {
+      console.error("Drive watch failed:", err);
       showToast("Connection error");
     }
     setLoading(false);

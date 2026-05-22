@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { getSession, signIn, signOut, signUp, type User, type AuthError } from "@/lib/auth";
+import { getSession, getToken, signIn, signOut, signUp, type User, type AuthError } from "@/lib/auth";
 
 // ─── Context shape ────────────────────────────────────────────────────────────
 
@@ -29,8 +29,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser(getSession());
-    setLoading(false);
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        signOut();
+        return null;
+      })
+      .then((data) => setUser(data))
+      .catch(() => {
+        signOut();
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<AuthError | null> => {

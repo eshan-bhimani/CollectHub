@@ -38,6 +38,9 @@ def psa_connect(
         raise HTTPException(status_code=401, detail="Invalid PSA email or password")
     except PSARateLimitError:
         raise HTTPException(status_code=429, detail="PSA API rate limit exceeded")
+    except Exception:
+        logger.exception("PSA connect failed")
+        raise HTTPException(status_code=502, detail="Could not reach PSA — try again later")
 
     encrypted = encrypt_token(result["access_token"])
     expiry = datetime.now(timezone.utc) + timedelta(seconds=result["expires_in"])

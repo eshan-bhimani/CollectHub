@@ -15,7 +15,7 @@ export type AuthError =
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 const TOKEN_KEY   = "ch_token";
 const SESSION_KEY = "ch_session";

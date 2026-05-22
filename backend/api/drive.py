@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/ping")
+def drive_ping():
+    return {"ok": True}
+
+
 class WatchRequest(BaseModel):
     folder_id: str
     folder_name: str

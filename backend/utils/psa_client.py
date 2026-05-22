@@ -43,7 +43,7 @@ class PSAClient:
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             timeout=15,
         )
-        if resp.status_code == 401:
+        if resp.status_code in (400, 401, 403):
             raise PSAAuthError("Invalid PSA email or password")
         if resp.status_code == 429:
             raise PSARateLimitError("PSA API rate limit exceeded")
