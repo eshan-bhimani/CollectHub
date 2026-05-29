@@ -25,7 +25,12 @@ def invoice_ping():
     return {"ok": True}
 
 
-def process_item(import_id: str, item: dict, user_id: str) -> None:
+def process_item(
+    import_id: str,
+    item: dict,
+    user_id: str,
+    registry_ctx=None,
+) -> None:
     db = SessionLocal()
     try:
         inv = db.query(InvoiceImport).filter(InvoiceImport.id == import_id).first()
@@ -90,8 +95,14 @@ def process_item(import_id: str, item: dict, user_id: str) -> None:
 
                     psa_email = psa_cred.psa_email
                     psa_token = decrypt_token(psa_cred.encrypted_psa_token)
-                    if not is_in_registry(psa_email, psa_token, cert_number):
-                        if not add_to_registry(psa_email, psa_token, cert_number):
+                    # Reuse the batch-shared, already-logged-in registry context
+                    # when present so we don't re-login for every card.
+                    if not is_in_registry(
+                        psa_email, psa_token, cert_number, context=registry_ctx
+                    ):
+                        if not add_to_registry(
+                            psa_email, psa_token, cert_number, context=registry_ctx
+                        ):
                             card.import_status = "pending_review"
                             import_status = "pending_review"
                 except Exception:
@@ -127,12 +138,61 @@ def process_item(import_id: str, item: dict, user_id: str) -> None:
         db.close()
 
 
-async def _run_processing(import_id: str, items: list[dict], user_id: str) -> None:
-    for item in items:
+def _process_batch(import_id: str, items: list[dict], user_id: str) -> None:
+    """Process every item of one invoice in a single worker thread.
+
+    Opens one shared, logged-in PSA registry context for the whole batch (when
+    the user has PSA connected) and passes it to each ``process_item`` call, so
+    Playwright authenticates once per invoice instead of once per card. Running
+    the loop in a single thread keeps the sync Playwright context thread-safe.
+    """
+    registry_bundle = None
+    registry_ctx = None
+    try:
+        # Look up PSA credentials once for the batch.
+        db = SessionLocal()
         try:
-            await asyncio.to_thread(process_item, import_id, item, user_id)
-        except Exception:
-            logger.exception("Background processing failed for item in import %s", import_id)
+            psa_cred = (
+                db.query(PSACredential)
+                .filter(PSACredential.user_id == user_id)
+                .first()
+            )
+            psa_email = psa_cred.psa_email if psa_cred else None
+            psa_token = (
+                decrypt_token(psa_cred.encrypted_psa_token) if psa_cred else None
+            )
+        finally:
+            db.close()
+
+        if psa_email and psa_token:
+            try:
+                from utils.psa_registry import open_registry_context
+
+                registry_bundle = open_registry_context(psa_email, psa_token)
+                if registry_bundle:
+                    registry_ctx = registry_bundle.get("context")
+            except Exception:
+                logger.exception("Failed to open shared registry context")
+
+        for item in items:
+            try:
+                process_item(import_id, item, user_id, registry_ctx)
+            except Exception:
+                logger.exception(
+                    "Background processing failed for item in import %s", import_id
+                )
+    finally:
+        if registry_bundle:
+            try:
+                from utils.psa_registry import close_registry_context
+
+                close_registry_context(registry_bundle)
+            except Exception:
+                logger.exception("Failed to close shared registry context")
+
+
+async def _run_processing(import_id: str, items: list[dict], user_id: str) -> None:
+    await asyncio.to_thread(_process_batch, import_id, items, user_id)
 
 
 @router.post("/upload")
@@ -190,7 +250,7 @@ async def invoice_upload(
             db.add(shipment)
             db.commit()
 
-    background_tasks.add_background_task(_run_processing, inv.id, items, current_user.id)
+    background_tasks.add_task(_run_processing, inv.id, items, current_user.id)
 
     return {"import_id": inv.id, "items_count": len(items), "status": "processing"}
 

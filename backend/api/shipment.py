@@ -15,6 +15,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/ping")
+def shipment_ping():
+    return {"ok": True}
+
+
 class ShipmentCreateRequest(BaseModel):
     tracking_number: str
     destination: str = "other"

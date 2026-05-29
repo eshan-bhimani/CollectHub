@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 
-const API = "";
+// Mirror the base-URL resolution used by lib/api.ts: prefer the explicit
+// NEXT_PUBLIC_API_URL when set, otherwise talk to the local backend directly.
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface DriveStatus {
   connected: boolean;
@@ -27,6 +29,11 @@ function authHeaders(): Record<string, string> {
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
+// Missing or expired token must never silently fail — send the user to login.
+function goToLogin(): void {
+  if (typeof window !== "undefined") window.location.href = "/login";
+}
+
 export default function DriveIntegration() {
   const [status, setStatus] = useState<DriveStatus | null>(null);
   const [folders, setFolders] = useState<DriveFolder[]>([]);
@@ -46,6 +53,10 @@ export default function DriveIntegration() {
       const res = await fetch(`${API}/api/drive/status`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        goToLogin();
+        return null;
+      }
       if (res.ok) {
         const data: DriveStatus = await res.json();
         setStatus(data);
@@ -62,6 +73,10 @@ export default function DriveIntegration() {
       const res = await fetch(`${API}/api/drive/folders`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
       if (res.ok) setFolders(await res.json());
     } catch (err) {
       console.error("fetchFolders failed:", err);
@@ -73,6 +88,10 @@ export default function DriveIntegration() {
       const res = await fetch(`${API}/api/drive/watched`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
       if (res.ok) setWatched(await res.json());
     } catch (err) {
       console.error("fetchWatched failed:", err);
@@ -103,11 +122,20 @@ export default function DriveIntegration() {
   }, [fetchStatus, fetchFolders, fetchWatched]);
 
   const handleConnect = async () => {
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/drive/auth`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        setLoading(false);
+        goToLogin();
+        return;
+      }
       if (res.ok) {
         const { auth_url } = await res.json();
         window.location.href = auth_url;
@@ -122,7 +150,21 @@ export default function DriveIntegration() {
   };
 
   const handleDisconnect = async () => {
-    await fetch(`${API}/api/drive/disconnect`, { headers: authHeaders() });
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/drive/disconnect`, {
+        headers: authHeaders(),
+      });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
+    } catch (err) {
+      console.error("Drive disconnect failed:", err);
+    }
     setStatus({ connected: false, folders_watched: 0 });
     setFolders([]);
     setWatched([]);
@@ -133,6 +175,10 @@ export default function DriveIntegration() {
     if (!selectedFolder) return;
     const folder = folders.find((f) => f.id === selectedFolder);
     if (!folder) return;
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/drive/watch`, {
@@ -143,6 +189,11 @@ export default function DriveIntegration() {
           folder_name: folder.name,
         }),
       });
+      if (res.status === 401) {
+        setLoading(false);
+        goToLogin();
+        return;
+      }
       if (res.ok) {
         setSelectedFolder("");
         fetchWatched();
@@ -159,10 +210,22 @@ export default function DriveIntegration() {
   };
 
   const handleUnwatch = async (folderId: string) => {
-    await fetch(`${API}/api/drive/watch/${folderId}`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    });
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/drive/watch/${folderId}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
+    } catch (err) {
+      console.error("Drive unwatch failed:", err);
+    }
     fetchWatched();
   };
 
