@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 
-const API = "";
+// Mirror the base-URL resolution used by lib/api.ts: prefer the explicit
+// NEXT_PUBLIC_API_URL when set, otherwise talk to the local backend directly.
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface Shipment {
   id: string;
@@ -21,6 +23,11 @@ interface Shipment {
 function authHeaders(): Record<string, string> {
   const t = getToken();
   return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
+// Missing or expired token must never silently fail — send the user to login.
+function goToLogin(): void {
+  if (typeof window !== "undefined") window.location.href = "/login";
 }
 
 const CARRIER_LABELS: Record<string, string> = {
@@ -65,11 +72,18 @@ export default function ShipmentTracker() {
   };
 
   const fetchShipments = useCallback(async () => {
-    if (!getToken()) return;
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
     try {
       const res = await fetch(`${API}/api/shipment/list`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
       if (res.ok) setShipments(await res.json());
     } catch (err) {
       console.error("fetchShipments failed:", err);
@@ -82,12 +96,21 @@ export default function ShipmentTracker() {
   }, [fetchShipments]);
 
   const handleRefresh = async (id: string) => {
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
     setRefreshingId(id);
     try {
       const res = await fetch(`${API}/api/shipment/${id}/refresh`, {
         method: "POST",
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        setRefreshingId(null);
+        goToLogin();
+        return;
+      }
       if (res.ok) {
         const updated: Shipment = await res.json();
         setShipments((prev) =>

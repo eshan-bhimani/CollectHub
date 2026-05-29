@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken } from "@/lib/auth";
 
-const API = "";
+// Mirror the base-URL resolution used by lib/api.ts: prefer the explicit
+// NEXT_PUBLIC_API_URL when set, otherwise talk to the local backend directly.
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface PSAStatus {
   connected: boolean;
@@ -27,6 +29,11 @@ function authHeaders(): Record<string, string> {
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
+// Missing or expired token must never silently fail — send the user to login.
+function goToLogin(): void {
+  if (typeof window !== "undefined") window.location.href = "/login";
+}
+
 export default function InvoiceUpload() {
   const [psaStatus, setPsaStatus] = useState<PSAStatus | null>(null);
   const [psaEmail, setPsaEmail] = useState("");
@@ -46,11 +53,18 @@ export default function InvoiceUpload() {
   };
 
   const fetchPSAStatus = useCallback(async () => {
-    if (!getToken()) return;
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
     try {
       const res = await fetch(`${API}/api/psa/status`, {
         headers: authHeaders(),
       });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
       if (res.ok) setPsaStatus(await res.json());
     } catch (err) {
       console.error("fetchPSAStatus failed:", err);
@@ -67,7 +81,7 @@ export default function InvoiceUpload() {
   const handlePSAConnect = async () => {
     if (!psaEmail || !psaPassword) return;
     if (!getToken()) {
-      showToast("Please log in first");
+      goToLogin();
       return;
     }
     setPsaLoading(true);
@@ -77,7 +91,19 @@ export default function InvoiceUpload() {
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ email: psaEmail, password: psaPassword }),
       });
+      if (res.status === 401 && !getToken()) {
+        goToLogin();
+        return;
+      }
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // Optimistically flip to the connected state so the email + green
+        // badge show immediately and the credentials form is hidden.
+        setPsaStatus({
+          connected: true,
+          email: data.email ?? psaEmail,
+          token_expires: null,
+        });
         setPsaPassword("");
         fetchPSAStatus();
         showToast("PSA account connected");
@@ -93,10 +119,22 @@ export default function InvoiceUpload() {
   };
 
   const handlePSADisconnect = async () => {
-    await fetch(`${API}/api/psa/disconnect`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    });
+    if (!getToken()) {
+      goToLogin();
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/psa/disconnect`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
+    } catch (err) {
+      console.error("PSA disconnect failed:", err);
+    }
     setPsaStatus({ connected: false, email: null, token_expires: null });
     showToast("PSA account disconnected");
   };
@@ -108,6 +146,12 @@ export default function InvoiceUpload() {
         const res = await fetch(`${API}/api/invoice/status/${importId}`, {
           headers: authHeaders(),
         });
+        if (res.status === 401) {
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          goToLogin();
+          return;
+        }
         if (res.ok) {
           const data: ImportStatus = await res.json();
           setImportStatus(data);
@@ -124,7 +168,7 @@ export default function InvoiceUpload() {
 
   const uploadPDF = async (file: File) => {
     if (!getToken()) {
-      showToast("Please log in first");
+      goToLogin();
       return;
     }
     setUploading(true);
@@ -137,6 +181,11 @@ export default function InvoiceUpload() {
         headers: authHeaders(),
         body: formData,
       });
+      if (res.status === 401) {
+        setUploading(false);
+        goToLogin();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setImportStatus({
@@ -190,7 +239,10 @@ export default function InvoiceUpload() {
         {psaStatus?.connected ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+                Connected
+              </span>
               <span className="text-white/70 text-sm">{psaStatus.email}</span>
             </div>
             <button

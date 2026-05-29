@@ -10,7 +10,12 @@ from middleware.auth import get_current_user
 from models.invoice import PSACredential
 from models.user import User
 from utils.google_drive import encrypt_token
-from utils.psa_client import PSAClient, PSAAuthError, PSARateLimitError
+from utils.psa_client import (
+    PSAClient,
+    PSAAuthError,
+    PSACertNotFoundError,
+    PSARateLimitError,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -42,6 +47,22 @@ def psa_connect(
         logger.exception("PSA connect failed")
         raise HTTPException(status_code=502, detail="Could not reach PSA — try again later")
 
+    # Validation ping: exercise the freshly-issued token against a known-bad cert.
+    # A 404 (PSACertNotFoundError) proves the token authenticates fine; only a
+    # PSAAuthError means the token is unusable, in which case we store nothing.
+    try:
+        PSAClient(result["access_token"]).get_cert("00000000")
+    except PSACertNotFoundError:
+        pass  # Expected — cert doesn't exist, but auth succeeded.
+    except PSAAuthError:
+        logger.warning("PSA token failed validation ping for %s", body.email)
+        raise HTTPException(status_code=401, detail="Invalid PSA email or password")
+    except PSARateLimitError:
+        raise HTTPException(status_code=429, detail="PSA API rate limit exceeded")
+    except Exception:
+        logger.exception("PSA validation ping failed")
+        raise HTTPException(status_code=502, detail="Could not reach PSA — try again later")
+
     encrypted = encrypt_token(result["access_token"])
     expiry = datetime.now(timezone.utc) + timedelta(seconds=result["expires_in"])
 
@@ -61,7 +82,7 @@ def psa_connect(
         db.add(row)
     db.commit()
 
-    return {"connected": True}
+    return {"connected": True, "email": body.email}
 
 
 @router.get("/status")

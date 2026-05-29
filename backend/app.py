@@ -68,12 +68,18 @@ app = FastAPI(
 )
 
 # ── Middleware ────────────────────────────────────────────────────────────────
+# The frontend (http://localhost:3000) calls the API cross-origin, so CORS must
+# explicitly permit that origin, the Authorization + Content-Type headers used by
+# every authenticated fetch, and the full set of HTTP methods the API exposes.
+_cors_origins = list(
+    dict.fromkeys([*settings.allowed_origins, "http://localhost:3000"])
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.state.limiter = limiter
